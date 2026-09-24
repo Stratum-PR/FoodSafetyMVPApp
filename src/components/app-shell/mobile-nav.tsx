@@ -6,12 +6,13 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import type { Role } from "@/domain/permissions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { NavLinks } from "./nav-links";
 
 /** Phone and small-tablet menu: the same links as the sidebar, in a side sheet. */
-export function MobileNav({ company }: { company: string }) {
+export function MobileNav({ company, role }: { company: string; role: Role }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
 
@@ -33,7 +34,7 @@ export function MobileNav({ company }: { company: string }) {
           />
         </SheetHeader>
         <nav aria-label={t("label")} className="mt-4">
-          <NavLinks company={company} onNavigate={() => setOpen(false)} />
+          <NavLinks company={company} role={role} onNavigate={() => setOpen(false)} />
         </nav>
       </SheetContent>
     </Sheet>

@@ -23,6 +23,16 @@ describe("messages", () => {
       ]),
     );
   });
+
+  it("reads plural messages by their argument, not their branch text", () => {
+    expect(
+      compareMessages(
+        { p: "{days, plural, =0 {vence hoy} one {en # día} other {en # días}}" },
+        { p: "{days, plural, =0 {expires today} one {in # day} other {in # days}}" },
+      ),
+    ).toEqual([]);
+    expect(compareMessages({ p: "{n, plural, other {#}}" }, { p: "{count, plural, other {#}}" })).toHaveLength(1);
+  });
 });
 
 describe("resolveLocale", () => {
