@@ -324,7 +324,31 @@
       "rejected": "Rejected",
       "superseded": "Superseded"
     },
-    "inReview": "One is waiting for review"
+    "inReview": "One is waiting for review",
+    "matrix": {
+      "title": "Documents by material",
+      "hint": "Each material bought from this supplier and the status of its documents. Tap a cell to see the document or upload it.",
+      "views": "Table view",
+      "byMaterial": "By ingredient",
+      "byDocument": "By document",
+      "incompleteOnly": "Only incomplete",
+      "showAll": "Show all",
+      "captionMaterial": "Materials in rows and documents in columns",
+      "captionDocument": "Documents in rows and materials in columns",
+      "material": "Material",
+      "document": "Document",
+      "pending": "Pending",
+      "missingIn": "Missing in",
+      "of": "{open} of {total}",
+      "complete": "Complete",
+      "allComplete": "Every document for these materials is current.",
+      "none": "Nothing is bought from this supplier right now.",
+      "notApplicable": "Does not apply",
+      "cellLabel": "{material} · {document}: {status}",
+      "upload": "upload",
+      "legend": "Legend",
+      "inactive": "{count, plural, one {# material offered} other {# materials offered}} but not bought now: no documents are required until the first order."
+    }
   },
   "lifecycle": {
     "onboarding": "Onboarding",

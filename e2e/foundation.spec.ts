@@ -432,3 +432,31 @@ test("a read-only role sees the approval but can't decide", async ({ page, conte
   await expect(page.getByRole("button", { name: "Guardar decisión" })).toHaveCount(0);
   await expect(page.getByText("Registrar no conformidad")).toHaveCount(0);
 });
+
+test("the supplier page shows materials by document, and transposed", async ({ page }) => {
+  // A company no other test changes, so the matrix is exactly the sample data.
+  await page.goto("/jugos-costa-norte/suplidores?orden=materiales&dir=desc");
+  await page
+    .locator("main :is(tbody tr, ul[aria-label] > li)")
+    .filter({ visible: true })
+    .first()
+    .locator("a[href*='/suplidores/p-']")
+    .click();
+
+  const matrix = page.locator("#matriz");
+  await expect(matrix.getByRole("heading", { name: "Documentos por material" })).toBeVisible();
+  await expect(matrix.getByRole("columnheader", { name: "Hoja de especificaciones" })).toBeVisible();
+  const materials = await matrix.locator("tbody th[scope=row]").count();
+  expect(materials).toBeGreaterThan(0);
+  await expectNoSeriousA11yIssues(page);
+
+  await matrix.getByRole("link", { name: "Por documento" }).click();
+  await expect(page).toHaveURL(/vista=documento/);
+  await expect(matrix.getByRole("rowheader", { name: "Hoja de especificaciones" })).toBeVisible();
+  // Transposed: one column per material (plus the document and "Falta en" columns).
+  await expect(matrix.locator("thead th")).toHaveCount(materials + 2);
+
+  await matrix.getByRole("link", { name: "Solo incompletos" }).click();
+  await expect(page).toHaveURL(/vista=documento&incompletos=1/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
