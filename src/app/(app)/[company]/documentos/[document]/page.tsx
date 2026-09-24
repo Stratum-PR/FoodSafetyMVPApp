@@ -53,6 +53,7 @@ export default async function Page({ params }: Props) {
     (r) => r.id !== doc.id && r.uploadedBy !== ctx.actor.userId,
   );
   const queueHref = navHref(company, "documentos");
+  const fileHref = `${documentHref(company, doc.id)}/archivo`;
 
   const historyColumns: Column<DocumentRow>[] = [
     {
@@ -135,13 +136,51 @@ export default async function Page({ params }: Props) {
             <Fact label={t("uploadedBy")}>{doc.uploadedByName}</Fact>
           </dl>
 
-          <section
-            aria-label={t("file")}
-            className="grid place-items-center gap-2 rounded-xl border border-dashed bg-card px-6 py-12 text-center"
-          >
-            <FileText aria-hidden className="size-8 text-muted-foreground" />
-            <p className="max-w-sm text-sm text-muted-foreground">{t("filePending")}</p>
-          </section>
+          {doc.file ? (
+            <section aria-label={t("file")} className="grid gap-3 rounded-xl border bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="min-w-0 font-medium break-all">
+                  {t("fileView.info", {
+                    name: doc.file.name,
+                    size:
+                      doc.file.size < 1024 * 1024
+                        ? `${format.number(Math.max(1, Math.round(doc.file.size / 1024)))} KB`
+                        : `${format.number(doc.file.size / 1024 / 1024, { maximumFractionDigits: 1 })} MB`,
+                  })}
+                </span>
+                <span className="flex gap-3 font-semibold">
+                  <a href={fileHref} target="_blank" rel="noopener" className="text-primary hover:underline">
+                    {t("fileView.open")}
+                  </a>
+                  <a href={`${fileHref}?descargar=1`} className="text-primary hover:underline">
+                    {t("fileView.download")}
+                  </a>
+                </span>
+              </div>
+              {doc.file.contentType === "application/pdf" ? (
+                <iframe
+                  src={fileHref}
+                  title={t("fileView.preview", { name: doc.file.name })}
+                  className="h-[70vh] min-h-96 w-full rounded-lg border bg-muted"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element -- a private, permission-checked file, not a static asset
+                <img
+                  src={fileHref}
+                  alt={t("fileView.preview", { name: doc.file.name })}
+                  className="max-h-[70vh] w-full rounded-lg border bg-muted object-contain"
+                />
+              )}
+            </section>
+          ) : (
+            <section
+              aria-label={t("file")}
+              className="grid place-items-center gap-2 rounded-xl border border-dashed bg-card px-6 py-12 text-center"
+            >
+              <FileText aria-hidden className="size-8 text-muted-foreground" />
+              <p className="max-w-sm text-sm text-muted-foreground">{t("filePending")}</p>
+            </section>
+          )}
         </div>
 
         <section className="grid content-start gap-4 rounded-xl border bg-card p-4 sm:p-5">

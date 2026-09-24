@@ -22,11 +22,12 @@
     "spanish": "Español",
     "english": "English",
     "userMenu": "Menú de usuario",
-    "sampleUser": "Usuario de ejemplo",
     "signOut": "Cerrar sesión",
     "signOutSoon": "El inicio de sesión llega con la base de datos",
     "previewAs": "Ver como",
-    "previewHint": "Vista previa con datos de ejemplo: cambia el rol para ver lo que ve cada usuario."
+    "previewHint": "Vista previa con datos de ejemplo: cambia de persona o de rol para ver lo que ve cada usuario.",
+    "previewPerson": "Persona",
+    "previewRole": "Rol"
   },
   "sample": {
     "badge": "Datos de ejemplo",
@@ -317,7 +318,7 @@
     "uploadedBy": "Subido por",
     "notSet": "No indicado",
     "file": "Archivo",
-    "filePending": "El archivo se verá aquí cuando se puedan subir documentos.",
+    "filePending": "Este documento de ejemplo no tiene archivo. Los que subas sí se verán aquí.",
     "review": {
       "title": "Revisión",
       "accept": "Aceptar",
@@ -361,6 +362,54 @@
       "reviewedBy": "Revisado por",
       "version": "Versión",
       "only": "Es la única versión recibida."
+    },
+    "fileView": {
+      "open": "Abrir en otra pestaña",
+      "download": "Descargar",
+      "preview": "Vista del archivo {name}",
+      "info": "{name} · {size}"
+    }
+  },
+  "upload": {
+    "title": "Subir documento",
+    "description": "El documento entra a la lista «Por revisar» y otra persona de tu equipo lo revisa.",
+    "button": "Subir documento",
+    "short": "Subir",
+    "supplier": "Suplidor",
+    "supplierPlaceholder": "Escoge un suplidor",
+    "about": "Para",
+    "aboutParty": "El suplidor (sus propios documentos)",
+    "makes": "lo fabrica",
+    "sells": "lo distribuye",
+    "type": "Tipo de documento",
+    "typePlaceholder": "Escoge el tipo",
+    "lot": "Lote",
+    "lotHint": "El número de lote que aparece en el certificado.",
+    "issued": "Fecha de emisión",
+    "issuedHint": "Opcional, pero ayuda a calcular el vencimiento.",
+    "expires": "Fecha de vencimiento",
+    "expiresHint": "Solo si el documento la trae impresa. Si no, se calcula: {months} meses desde la emisión.",
+    "file": "Archivo",
+    "fileHint": "PDF, JPG o PNG, hasta 10 MB.",
+    "submit": "Subir para revisión",
+    "saving": "Subiendo…",
+    "cancel": "Cancelar",
+    "summary": "Revisa los campos marcados.",
+    "noAccessTitle": "Tu rol no puede subir documentos",
+    "noAccessBody": "Si lo necesitas, pídele a un administrador de tu empresa que cambie tu rol.",
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "unknown_type": "Ese tipo de documento no existe.",
+      "type_not_for_subject": "Ese tipo no aplica a lo escogido en «Para».",
+      "invalid_date": "La fecha no es válida.",
+      "future_date": "La fecha no puede ser futura.",
+      "expires_before_issued": "Debe ser después de la fecha de emisión.",
+      "lot_too_long": "Máximo 40 caracteres.",
+      "file_too_large": "El archivo pasa de 10 MB.",
+      "file_type": "Solo PDF, JPG o PNG. Se revisa el contenido del archivo, no solo su nombre.",
+      "file_empty": "El archivo está vacío.",
+      "no_permission": "Tu rol no puede subir documentos.",
+      "not_found": "No encontramos esta empresa."
     }
   }
 }

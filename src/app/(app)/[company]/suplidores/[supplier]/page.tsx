@@ -1,11 +1,11 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
-import { documentHref, navHref, supplierHref } from "@/components/app-shell/nav-items";
+import { documentHref, navHref, supplierHref, uploadHref } from "@/components/app-shell/nav-items";
 import { complianceTone } from "@/components/compliance-bar";
 import { DocumentStateBadge } from "@/components/documents/document-state-badge";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
@@ -14,6 +14,8 @@ import { ApprovalBadge } from "@/components/suppliers/approval-badge";
 import { ComplianceGaps } from "@/components/suppliers/compliance-gaps";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { RequirementResult, RequirementStatus } from "@/domain/status";
+import { buttonVariants } from "@/components/ui/button";
+import { can } from "@/domain/permissions";
 import { isLocale, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
@@ -40,11 +42,12 @@ const SEGMENT: Record<RequirementStatus, string> = {
 export default async function Page({ params }: Props) {
   const { company, supplier } = await params;
   const ctx = await getRequestContext(company);
-  const [detail, t, tType, tLifecycle, format, locale] = await Promise.all([
+  const [detail, t, tType, tLifecycle, tUpload, format, locale] = await Promise.all([
     getSupplier(ctx, decodeURIComponent(supplier)),
     getTranslations("supplier"),
     getTranslations("partyType"),
     getTranslations("lifecycle"),
+    getTranslations("upload"),
     getFormatter(),
     getLocale(),
   ]);
@@ -80,12 +83,30 @@ export default async function Page({ params }: Props) {
           ? r.requirement.subject.kind === "party" && r.requirement.subject.partyId === d.subject.partyId
           : r.requirement.subject.kind === "source" && r.requirement.subject.sourceId === d.subject.sourceId),
     );
-  const status = (r: RequirementResult) => (
-    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-      <StatusPill status={r.status} />
-      {awaitingReview(r) ? <span className="text-xs text-muted-foreground">{t("inReview")}</span> : null}
-    </span>
-  );
+  const canUpload = can(ctx.actor.role, "documents.upload");
+  const status = (r: RequirementResult) => {
+    const waiting = awaitingReview(r);
+    const subject = r.requirement.subject;
+    return (
+      <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+        <StatusPill status={r.status} />
+        {waiting ? <span className="text-xs text-muted-foreground">{t("inReview")}</span> : null}
+        {/* Unmet or expiring, and nothing already waiting: offer the upload, pre-filled. */}
+        {canUpload && r.status !== "current" && !waiting ? (
+          <Link
+            href={uploadHref(company, {
+              supplier: party.id,
+              para: subject.kind === "source" ? subject.sourceId : undefined,
+              tipo: r.requirement.anyOf[0],
+            })}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            {tUpload("short")}
+          </Link>
+        ) : null}
+      </span>
+    );
+  };
   const expires = (r: RequirementResult) =>
     !r.document ? t("none") : r.expiresOn ? date(r.expiresOn) : t("neverExpires");
 
@@ -138,7 +159,15 @@ export default async function Page({ params }: Props) {
           <ArrowLeft aria-hidden className="size-4" />
           {t("back")}
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">{party.name}</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">{party.name}</h1>
+          {canUpload ? (
+            <Link href={uploadHref(company, { supplier: party.id })} className={buttonVariants({ size: "sm" })}>
+              <Upload aria-hidden />
+              {tUpload("button")}
+            </Link>
+          ) : null}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <ApprovalBadge approval={party.approval} />
           <Chip>{tLifecycle(party.lifecycle)}</Chip>

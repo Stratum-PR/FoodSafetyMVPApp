@@ -10,7 +10,7 @@ import { type Actor, can, isRole, type Permission, type Role } from "@/domain/pe
 import { timeZone } from "@/i18n/config";
 
 import { getCompany, usingSampleData } from "./companies";
-import { SAMPLE_USER_ID } from "./sample/suppliers";
+import { SAMPLE_USER_ID, SAMPLE_USERS, type SampleUser } from "./sample/suppliers";
 
 /*
  * Who is asking, for which company, and on what date. Every service takes this and
@@ -34,6 +34,14 @@ export const getPreviewRole = cache(async (): Promise<Role> => {
   return isRole(value) ? value : DEFAULT_SAMPLE_ROLE;
 });
 
+/** Sample data only: which sample person is using the app (to show separation of duties). */
+export const PREVIEW_USER_COOKIE = "preview_user";
+
+export const getPreviewUser = cache(async (): Promise<SampleUser> => {
+  const value = (await cookies()).get(PREVIEW_USER_COOKIE)?.value;
+  return SAMPLE_USERS.find((u) => u.id === value) ?? SAMPLE_USERS.find((u) => u.id === SAMPLE_USER_ID)!;
+});
+
 /** Context for a company page or action. Throws not_found when the company isn't available. */
 export const getRequestContext = cache(async (companySlug: string): Promise<RequestContext> => {
   const company = await getCompany(companySlug);
@@ -41,7 +49,7 @@ export const getRequestContext = cache(async (companySlug: string): Promise<Requ
   if (!usingSampleData) throw new Error("Sign-in is not built yet");
   return {
     company,
-    actor: { userId: SAMPLE_USER_ID, role: await getPreviewRole() },
+    actor: { userId: (await getPreviewUser()).id, role: await getPreviewRole() },
     today: todayIn(timeZone),
   };
 });

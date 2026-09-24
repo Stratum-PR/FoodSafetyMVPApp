@@ -22,11 +22,12 @@
     "spanish": "Español",
     "english": "English",
     "userMenu": "User menu",
-    "sampleUser": "Sample user",
     "signOut": "Sign out",
     "signOutSoon": "Sign-in arrives with the database",
     "previewAs": "View as",
-    "previewHint": "Sample-data preview: change the role to see what each user sees."
+    "previewHint": "Sample-data preview: switch person or role to see what each user sees.",
+    "previewPerson": "Person",
+    "previewRole": "Role"
   },
   "sample": {
     "badge": "Sample data",
@@ -317,7 +318,7 @@
     "uploadedBy": "Uploaded by",
     "notSet": "Not given",
     "file": "File",
-    "filePending": "The file will show here once documents can be uploaded.",
+    "filePending": "This sample document has no file. The ones you upload will show here.",
     "review": {
       "title": "Review",
       "accept": "Accept",
@@ -361,6 +362,54 @@
       "reviewedBy": "Reviewed by",
       "version": "Version",
       "only": "This is the only version received."
+    },
+    "fileView": {
+      "open": "Open in a new tab",
+      "download": "Download",
+      "preview": "Preview of {name}",
+      "info": "{name} · {size}"
+    }
+  },
+  "upload": {
+    "title": "Upload document",
+    "description": "The document goes to the “To review” list, and someone else on your team reviews it.",
+    "button": "Upload document",
+    "short": "Upload",
+    "supplier": "Supplier",
+    "supplierPlaceholder": "Choose a supplier",
+    "about": "For",
+    "aboutParty": "The supplier (its own documents)",
+    "makes": "makes it",
+    "sells": "distributes it",
+    "type": "Document type",
+    "typePlaceholder": "Choose the type",
+    "lot": "Lot",
+    "lotHint": "The lot number shown on the certificate.",
+    "issued": "Issue date",
+    "issuedHint": "Optional, but it helps calculate the expiration.",
+    "expires": "Expiration date",
+    "expiresHint": "Only if it's printed on the document. Otherwise it's calculated: {months} months from issue.",
+    "file": "File",
+    "fileHint": "PDF, JPG or PNG, up to 10 MB.",
+    "submit": "Upload for review",
+    "saving": "Uploading…",
+    "cancel": "Cancel",
+    "summary": "Check the highlighted fields.",
+    "noAccessTitle": "Your role can't upload documents",
+    "noAccessBody": "If you need to, ask an administrator at your company to change your role.",
+    "errors": {
+      "required": "This field is required.",
+      "unknown_type": "That document type doesn't exist.",
+      "type_not_for_subject": "That type doesn't apply to what's chosen under “For”.",
+      "invalid_date": "The date isn't valid.",
+      "future_date": "The date can't be in the future.",
+      "expires_before_issued": "Must be after the issue date.",
+      "lot_too_long": "40 characters at most.",
+      "file_too_large": "The file is over 10 MB.",
+      "file_type": "Only PDF, JPG or PNG. The file's content is checked, not just its name.",
+      "file_empty": "The file is empty.",
+      "no_permission": "Your role can't upload documents.",
+      "not_found": "We couldn't find this company."
     }
   }
 }
