@@ -14,7 +14,7 @@ import { isLocale, type Locale } from "@/i18n/config";
 import { getRequestContext } from "@/server/context";
 import { reviewDocumentAction } from "@/server/document-actions";
 import { type DocumentRow, filterDocuments } from "@/server/document-list";
-import { getDocument, listDocuments } from "@/server/documents";
+import { getDocument, getReviewPolicy, listDocuments } from "@/server/documents";
 
 type Props = PageProps<"/[company]/documentos/[document]">;
 
@@ -48,9 +48,11 @@ export default async function Page({ params }: Props) {
 
   const name = await typeName(doc.typeCode);
   const date = (iso: string) => format.dateTime(new Date(`${iso}T12:00:00Z`), { dateStyle: "medium" });
-  // The next document in the review queue that this user can act on (not their own upload).
+  // The next document in the review queue this user can act on (not their own upload, if the
+  // company requires a second person).
+  const policy = await getReviewPolicy(ctx);
   const next = filterDocuments(rows, { tab: "revisar", q: "" }).find(
-    (r) => r.id !== doc.id && r.uploadedBy !== ctx.actor.userId,
+    (r) => r.id !== doc.id && (!policy.requireSecondPerson || r.uploadedBy !== ctx.actor.userId),
   );
   const queueHref = navHref(company, "documentos");
   const fileHref = `${documentHref(company, doc.id)}/archivo`;

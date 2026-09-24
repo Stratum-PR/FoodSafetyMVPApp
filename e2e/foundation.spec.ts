@@ -4,7 +4,13 @@ import { expect, type Page, test } from "@playwright/test";
 const COMPANY = "/alimentos-cordillera";
 
 async function expectNoSeriousA11yIssues(page: Page) {
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+  // Next streams the <title> from async generateMetadata just after the content; wait for it.
+  await expect.poll(() => page.title()).not.toBe("");
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    // The inside of the browser's own PDF viewer (document previews) isn't ours; the frame itself is checked.
+    .exclude('iframe[src$="/archivo"]')
+    .analyze();
   const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
 }
@@ -222,7 +228,8 @@ test("the documents page opens on the review queue", async ({ page }) => {
   await expectNoSeriousA11yIssues(page);
 
   await page.getByRole("link", { name: /Aceptados/ }).click();
-  await expect(page).toHaveURL(/estado=aceptados/);
+  // The accepted list is long (about 240 rows); give it time when many tests run at once.
+  await expect(page).toHaveURL(/estado=aceptados/, { timeout: 15_000 });
   await expect(page.getByText("Aceptado", { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });
 
@@ -251,16 +258,18 @@ test("accepting a document takes it out of the queue", async ({ page, isMobile }
   expect(await reviewableDocuments(page)).not.toContain(href);
 });
 
-test("you can't review a document you uploaded", async ({ page }) => {
+test("small teams can review a document they uploaded themselves", async ({ page, isMobile }) => {
   await page.goto(`${REVIEW_COMPANY}/documentos`);
+  // Your own sample uploads (oldest first); desktop and phone each take a different one.
   const mine = page
     .locator("main :is(tbody tr, ul[aria-label='Documentos'] > li)")
     .filter({ visible: true })
     .filter({ hasText: "(tú)" })
-    .first();
+    .nth(isMobile ? 1 : 0);
   await mine.locator("a[href*='/documentos/']").first().click();
-  await expect(page.getByText(/Tú subiste este documento/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Aceptar" })).toHaveCount(0);
+  await expect(page.getByText(/Tú subiste este documento/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Aceptar" }).click();
+  await expect(page.getByText(/Aceptado por Usuario de ejemplo/)).toBeVisible();
 });
 
 test("a read-only role sees documents but can't review them", async ({ page, context, baseURL }) => {
@@ -280,7 +289,8 @@ test("an unknown document shows a friendly page inside the app", async ({ page }
 });
 
 test("a replaced document stays on file and shows its full history", async ({ page }) => {
-  await page.goto(`${COMPANY}/documentos?estado=reemplazados`);
+  // A company no other test changes, so its history is exactly the sample data.
+  await page.goto("/jugos-costa-norte/documentos?estado=reemplazados");
   const row = page.locator("main :is(tbody tr, ul[aria-label='Documentos'] > li)").filter({ visible: true }).first();
   await row.locator("a[href*='/documentos/']").first().click();
 
@@ -322,7 +332,7 @@ async function fillUpload(page: Page) {
   await page.getByLabel("Fecha de emisión").fill("2026-09-01");
 }
 
-test("an uploaded document goes to review, and a colleague can accept it", async ({ page, context, baseURL }) => {
+test("an uploaded document goes to review, and the same person can accept it", async ({ page }) => {
   await fillUpload(page);
   await expectNoSeriousA11yIssues(page);
   await page.getByLabel("Archivo").setInputFiles(PDF_FILE);
@@ -331,7 +341,6 @@ test("an uploaded document goes to review, and a colleague can accept it", async
   await expect(page).toHaveURL(/\/documentos\/up-/);
   await expect(page.getByText("Por revisar").first()).toBeVisible();
   await expect(page.getByText("Certificado_GFSI_2026.pdf", { exact: false })).toBeVisible();
-  await expect(page.getByText(/Tú subiste este documento/)).toBeVisible();
 
   // The file comes back as the same PDF, private and never cached.
   const file = await page.request.get(`${page.url()}/archivo`);
@@ -340,11 +349,9 @@ test("an uploaded document goes to review, and a colleague can accept it", async
   expect(file.headers()["cache-control"]).toBe("private, no-store");
   expect((await file.body()).toString()).toBe(PDF_FILE.buffer.toString());
 
-  // Someone else on the team reviews it.
-  await context.addCookies([{ name: "preview_user", value: "u-marisol", url: baseURL! }]);
-  await page.reload();
+  // Small teams: the person who uploaded it may accept it.
   await page.getByRole("button", { name: "Aceptar" }).click();
-  await expect(page.getByText(/Aceptado por Marisol Ortiz/)).toBeVisible();
+  await expect(page.getByText(/Aceptado por Usuario de ejemplo/)).toBeVisible();
 });
 
 test("upload refuses a file that only pretends to be a PDF, and keeps the form", async ({ page }) => {

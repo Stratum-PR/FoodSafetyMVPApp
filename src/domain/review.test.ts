@@ -29,10 +29,23 @@ describe("document review", () => {
     });
   });
 
-  it("never lets someone review their own upload", () => {
+  it("lets the uploader review their own document by default (small teams)", () => {
     const mine = doc("d1", { uploadedBy: "ana" });
-    expect(reviewDocument(mine, [], qm, "accept", "", TODAY, false)).toEqual({ ok: false, denial: "own_upload" });
-    expect(checkCanReview(qm, mine)).toBe("own_upload");
+    expect(checkCanReview(qm, mine)).toBeNull();
+    expect(reviewDocument(mine, [], qm, "accept", "", TODAY, false)).toMatchObject({
+      ok: true,
+      document: { state: "accepted", uploadedBy: "ana", reviewedBy: "ana" },
+    });
+  });
+
+  it("requires a second person when the company asks for it", () => {
+    const mine = doc("d1", { uploadedBy: "ana" });
+    const strict = { requireSecondPerson: true };
+    expect(checkCanReview(qm, mine, strict)).toBe("own_upload");
+    expect(reviewDocument(mine, [], qm, "accept", "", TODAY, false, strict)).toEqual({
+      ok: false,
+      denial: "own_upload",
+    });
   });
 
   it("needs the review permission", () => {

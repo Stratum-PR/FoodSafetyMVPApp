@@ -89,7 +89,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
     {
       key: "uploadedBy",
       header: t("col.uploadedBy"),
-      // Flags your own uploads: you can't review those.
+      // Marks your own uploads (companies can require someone else to review them).
       cell: (r) => (r.uploadedBy === ctx.actor.userId ? `${r.uploadedByName} (${t("yours")})` : r.uploadedByName),
     },
     { key: "state", header: t("col.state"), cell: (r) => <DocumentStateBadge state={r.state} /> },

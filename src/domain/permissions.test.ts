@@ -56,32 +56,27 @@ describe("role permissions", () => {
 describe("separation of duties", () => {
   const qm = { userId: "ana", role: "quality_manager" } as const;
 
-  it("blocks reviewing your own upload", () => {
-    expect(checkReviewDocument(qm, { uploadedBy: "ana" })).toBe("own_upload");
+  const strict = { requireSecondPerson: true };
+
+  it("lets small teams review their own uploads by default", () => {
+    expect(checkReviewDocument(qm, { uploadedBy: "ana" })).toBeNull();
     expect(checkReviewDocument(qm, { uploadedBy: "luis" })).toBeNull();
     expect(checkReviewDocument({ userId: "w", role: "warehouse" }, { uploadedBy: "luis" })).toBe("no_permission");
   });
 
-  it("blocks approving a supplier you added", () => {
-    const company = { ownerCount: 2, allowSoleOwnerSelfApproval: true };
-    expect(checkApproveParty(qm, { createdBy: "ana" }, company)).toBe("own_supplier");
-    expect(checkApproveParty(qm, { createdBy: "luis" }, company)).toBeNull();
-    expect(checkApproveParty({ userId: "p", role: "purchasing" }, { createdBy: "luis" }, company)).toBe(
-      "no_permission",
-    );
+  it("requires a second person to review only when the company turns it on", () => {
+    expect(checkReviewDocument(qm, { uploadedBy: "ana" }, strict)).toBe("own_upload");
+    expect(checkReviewDocument(qm, { uploadedBy: "luis" }, strict)).toBeNull();
   });
 
-  it("lets a sole owner self-approve only when the company turns it on", () => {
-    const owner = { userId: "eva", role: "owner" } as const;
-    expect(
-      checkApproveParty(owner, { createdBy: "eva" }, { ownerCount: 1, allowSoleOwnerSelfApproval: true }),
-    ).toBeNull();
-    expect(checkApproveParty(owner, { createdBy: "eva" }, { ownerCount: 1, allowSoleOwnerSelfApproval: false })).toBe(
-      "own_supplier",
-    );
-    expect(checkApproveParty(owner, { createdBy: "eva" }, { ownerCount: 2, allowSoleOwnerSelfApproval: true })).toBe(
-      "own_supplier",
-    );
+  it("lets the person who added a supplier approve it by default", () => {
+    expect(checkApproveParty(qm, { createdBy: "ana" })).toBeNull();
+    expect(checkApproveParty({ userId: "p", role: "purchasing" }, { createdBy: "luis" })).toBe("no_permission");
+  });
+
+  it("requires a second person to approve only when the company turns it on", () => {
+    expect(checkApproveParty(qm, { createdBy: "ana" }, strict)).toBe("own_supplier");
+    expect(checkApproveParty(qm, { createdBy: "luis" }, strict)).toBeNull();
   });
 
   it("always keeps an active owner", () => {

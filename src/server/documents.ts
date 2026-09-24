@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { IsoDate } from "@/domain/dates";
 import { AppError } from "@/domain/errors";
+import { DEFAULT_REVIEW_POLICY, type ReviewPolicy } from "@/domain/permissions";
 import { checkCanReview, type ReviewDecision, type ReviewDenial, reviewDocument } from "@/domain/review";
 import type { DocumentSubject, FileRef, MaterialKind, SupplierDocument } from "@/domain/suppliers";
 import { checkUpload, MAX_FILE_BYTES, safeFileName, type UploadError, type UploadField } from "@/domain/upload";
@@ -65,7 +66,7 @@ export async function getDocument(ctx: RequestContext, id: string): Promise<Docu
     reviewedOn: doc.reviewedOn,
     rejectionReason: doc.rejectionReason,
     file: doc.file ? { name: doc.file.name, size: doc.file.size, contentType: doc.file.contentType } : undefined,
-    reviewDenial: checkCanReview(ctx.actor, doc),
+    reviewDenial: checkCanReview(ctx.actor, doc, store.policy),
     versions: toDocumentRows({ ...store, documents: documentVersions(doc, store.documents) }, SAMPLE_USERS),
   };
 }
@@ -97,7 +98,7 @@ export async function decideDocument(
   if (!doc) throw new AppError("not_found", "document");
 
   const perLot = findType(DEFAULT_CATALOG, doc.typeCode)?.perLot ?? false;
-  const result = reviewDocument(doc, store.documents, ctx.actor, decision, reason, ctx.today, perLot);
+  const result = reviewDocument(doc, store.documents, ctx.actor, decision, reason, ctx.today, perLot, store.policy);
   if (!result.ok) return result;
 
   const changed = new Map([result.document, ...result.superseded].map((d) => [d.id, d]));
@@ -229,4 +230,10 @@ export async function uploadDocument(ctx: RequestContext, req: UploadRequest): P
     partyId: party!.id,
   });
   return { ok: true, id };
+}
+
+/** The company's separation-of-duties choice (see ReviewPolicy). */
+export async function getReviewPolicy(ctx: RequestContext): Promise<ReviewPolicy> {
+  // Stores created before policies existed (a running dev server) fall back to the default.
+  return getSampleStore(ctx.company.slug, ctx.today).policy ?? DEFAULT_REVIEW_POLICY;
 }
