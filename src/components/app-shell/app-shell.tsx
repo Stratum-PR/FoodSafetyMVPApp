@@ -19,12 +19,18 @@ export function AppShell({
   companies,
   sampleData,
   role,
+  user,
+  people,
   children,
 }: {
   company: Company;
   companies: Company[];
   sampleData: boolean;
   role: Role;
+  /** The person using the app (sample data: the chosen sample person). */
+  user: { id: string; name: string };
+  /** Sample data only: people the preview can switch between. */
+  people: { id: string; name: string }[];
   children: ReactNode;
 }) {
   const t = useTranslations("nav");
@@ -58,7 +64,7 @@ export function AppShell({
               </span>
             ) : null}
             <LanguageSwitch />
-            <UserMenu role={role} canPreview={sampleData} />
+            <UserMenu role={role} user={user} people={people} canPreview={sampleData} />
           </div>
         </header>
 

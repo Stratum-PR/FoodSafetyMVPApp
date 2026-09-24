@@ -48,3 +48,6 @@ next-env.d.ts
 /test-results
 /blob-report
 /playwright/.cache
+
+# local document files (dev and tests; Azure Blob Storage in the cloud)
+/.data/

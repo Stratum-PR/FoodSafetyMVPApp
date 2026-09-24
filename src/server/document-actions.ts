@@ -1,12 +1,59 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { isAppError } from "@/domain/errors";
 import type { ReviewDenial } from "@/domain/review";
+import type { UploadError, UploadField } from "@/domain/upload";
 
 import { getRequestContext } from "./context";
-import { decideDocument } from "./documents";
+import { decideDocument, uploadDocument } from "./documents";
+
+export type UploadFormState =
+  | { status: "idle" }
+  | { status: "invalid"; errors: Partial<Record<UploadField, UploadError>> }
+  | { status: "error"; code: "no_permission" | "not_found" };
+
+const text = (form: FormData, name: string) => {
+  const value = form.get(name);
+  return typeof value === "string" ? value : "";
+};
+
+/**
+ * The upload form. On success it opens the new document's page; on invalid input it returns
+ * the problem with each field so the form can show it next to that field.
+ */
+export async function uploadDocumentAction(
+  company: string,
+  _previous: UploadFormState,
+  form: FormData,
+): Promise<UploadFormState> {
+  const file = form.get("file");
+  let id: string;
+  try {
+    const ctx = await getRequestContext(company);
+    const outcome = await uploadDocument(ctx, {
+      partyId: text(form, "partyId"),
+      about: text(form, "about"),
+      typeCode: text(form, "typeCode"),
+      lotCode: text(form, "lotCode"),
+      issuedOn: text(form, "issuedOn"),
+      expiresOn: text(form, "expiresOn"),
+      file: file instanceof File ? file : null,
+    });
+    if (!outcome.ok) return { status: "invalid", errors: outcome.errors };
+    id = outcome.id;
+  } catch (error) {
+    if (isAppError(error)) {
+      return { status: "error", code: error.code === "forbidden" ? "no_permission" : "not_found" };
+    }
+    throw error;
+  }
+  revalidatePath(`/${company}`, "layout");
+  // redirect() works by throwing, so it stays outside the try/catch.
+  redirect(`/${company}/documentos/${encodeURIComponent(id)}`);
+}
 
 export type ReviewFormState =
   | { status: "idle" }

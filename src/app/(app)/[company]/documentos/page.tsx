@@ -1,19 +1,20 @@
-import { FileCheck2, Search, SearchX } from "lucide-react";
+import { FileCheck2, Search, SearchX, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Form from "next/form";
 import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 
-import { documentHref, navHref, supplierHref } from "@/components/app-shell/nav-items";
+import { documentHref, navHref, supplierHref, uploadHref } from "@/components/app-shell/nav-items";
 import { DocumentStateBadge } from "@/components/documents/document-state-badge";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { sectionText } from "@/components/section-placeholder";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
+import { can } from "@/domain/permissions";
 import { isLocale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
@@ -34,10 +35,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({ params, searchParams }: PageProps<"/[company]/documentos">) {
   const [{ company }, query] = await Promise.all([params, searchParams]);
   const ctx = await getRequestContext(company);
-  const [rows, text, t, format, locale] = await Promise.all([
+  const [rows, text, t, tUpload, format, locale] = await Promise.all([
     listDocuments(ctx),
     sectionText("documents"),
     getTranslations("documents"),
+    getTranslations("upload"),
     getFormatter(),
     getLocale(),
   ]);
@@ -96,7 +98,18 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
   const queue = filters.tab === "revisar";
   return (
     <div className="grid grid-cols-1 gap-6">
-      <PageHeader title={text.title} description={text.description} />
+      <PageHeader
+        title={text.title}
+        description={text.description}
+        actions={
+          can(ctx.actor.role, "documents.upload") ? (
+            <Link href={uploadHref(company)} className={buttonVariants()}>
+              <Upload aria-hidden />
+              {tUpload("button")}
+            </Link>
+          ) : null
+        }
+      />
 
       <nav aria-label={t("tabsLabel")} className="overflow-x-auto">
         <ul className="flex min-w-max gap-1 border-b">

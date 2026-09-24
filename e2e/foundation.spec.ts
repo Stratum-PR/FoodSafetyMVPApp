@@ -304,3 +304,63 @@ test("a replaced document stays on file and shows its full history", async ({ pa
   await expect(page.getByText(/Aceptado por /)).toBeVisible();
   await expect(page.getByText("Reemplazado", { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });
+
+/* Upload. The files are made in memory: a tiny real PDF, and a text file pretending to be one. */
+const PDF_FILE = {
+  name: "Certificado GFSI 2026.pdf",
+  mimeType: "application/pdf",
+  buffer: Buffer.from("%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n"),
+};
+const FAKE_PDF = { name: "falso.pdf", mimeType: "application/pdf", buffer: Buffer.from("not a pdf") };
+
+async function fillUpload(page: Page) {
+  await page.goto(`${COMPANY}/documentos`);
+  await page.getByRole("link", { name: "Subir documento" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Subir documento" })).toBeVisible();
+  await page.getByLabel("Suplidor").selectOption({ index: 1 });
+  await page.getByLabel("Tipo de documento").selectOption("gfsi_cert");
+  await page.getByLabel("Fecha de emisión").fill("2026-09-01");
+}
+
+test("an uploaded document goes to review, and a colleague can accept it", async ({ page, context, baseURL }) => {
+  await fillUpload(page);
+  await expectNoSeriousA11yIssues(page);
+  await page.getByLabel("Archivo").setInputFiles(PDF_FILE);
+  await page.getByRole("button", { name: "Subir para revisión" }).click();
+
+  await expect(page).toHaveURL(/\/documentos\/up-/);
+  await expect(page.getByText("Por revisar").first()).toBeVisible();
+  await expect(page.getByText("Certificado_GFSI_2026.pdf", { exact: false })).toBeVisible();
+  await expect(page.getByText(/Tú subiste este documento/)).toBeVisible();
+
+  // The file comes back as the same PDF, private and never cached.
+  const file = await page.request.get(`${page.url()}/archivo`);
+  expect(file.status()).toBe(200);
+  expect(file.headers()["content-type"]).toBe("application/pdf");
+  expect(file.headers()["cache-control"]).toBe("private, no-store");
+  expect((await file.body()).toString()).toBe(PDF_FILE.buffer.toString());
+
+  // Someone else on the team reviews it.
+  await context.addCookies([{ name: "preview_user", value: "u-marisol", url: baseURL! }]);
+  await page.reload();
+  await page.getByRole("button", { name: "Aceptar" }).click();
+  await expect(page.getByText(/Aceptado por Marisol Ortiz/)).toBeVisible();
+});
+
+test("upload refuses a file that only pretends to be a PDF, and keeps the form", async ({ page }) => {
+  await fillUpload(page);
+  await page.getByLabel("Archivo").setInputFiles(FAKE_PDF);
+  await page.getByRole("button", { name: "Subir para revisión" }).click();
+  await expect(page.getByText(/Solo PDF, JPG o PNG/)).toBeVisible();
+  await expect(page).toHaveURL(/\/documentos\/subir/);
+  await expect(page.getByLabel("Tipo de documento")).toHaveValue("gfsi_cert");
+  await expect(page.getByLabel("Fecha de emisión")).toHaveValue("2026-09-01");
+});
+
+test("a read-only role can't upload", async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: "preview_role", value: "viewer", url: baseURL! }]);
+  await page.goto(`${COMPANY}/documentos`);
+  await expect(page.getByRole("link", { name: "Subir documento" })).toHaveCount(0);
+  await page.goto(`${COMPANY}/documentos/subir`);
+  await expect(page.getByText("Tu rol no puede subir documentos")).toBeVisible();
+});

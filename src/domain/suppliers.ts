@@ -77,6 +77,8 @@ export type SupplierDocument = {
   /** Set when the document is accepted or rejected. */
   reviewedBy?: string;
   reviewedOn?: IsoDate;
+  /** The stored file. Sample documents have none. */
+  file?: FileRef;
   /** Required when rejected; shown to whoever uploads the replacement. */
   rejectionReason?: string;
 };
@@ -90,3 +92,11 @@ export function isForeign(party: Pick<Party, "country">): boolean {
 export function vendorOf(source: Pick<ApprovedSource, "manufacturerId" | "distributorId">): string {
   return source.distributorId ?? source.manufacturerId;
 }
+
+/** A stored document file. `key` locates it in storage; `name` is the safe download name. */
+export type FileRef = {
+  key: string;
+  name: string;
+  size: number;
+  contentType: "application/pdf" | "image/jpeg" | "image/png";
+};

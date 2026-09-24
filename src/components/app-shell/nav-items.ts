@@ -25,3 +25,13 @@ export function supplierHref(company: string, supplierId: string): string {
 export function documentHref(company: string, documentId: string): string {
   return `/${company}/documentos/${encodeURIComponent(documentId)}`;
 }
+
+/** The upload form, optionally pre-filled: a supplier, what it's for (a source id) and a type. */
+export function uploadHref(company: string, prefill: { supplier?: string; para?: string; tipo?: string } = {}): string {
+  const query = new URLSearchParams();
+  if (prefill.supplier) query.set("suplidor", prefill.supplier);
+  if (prefill.para) query.set("para", prefill.para);
+  if (prefill.tipo) query.set("tipo", prefill.tipo);
+  const q = query.toString();
+  return `/${company}/documentos/subir${q ? `?${q}` : ""}`;
+}
