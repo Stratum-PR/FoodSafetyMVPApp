@@ -7,7 +7,8 @@ import type { Approval, Lifecycle, PartyType } from "@/domain/suppliers";
 import { isForeign } from "@/domain/suppliers";
 
 import { type RequestContext, requirePermission } from "./context";
-import { generateSampleSuppliers, SAMPLE_USERS, type SampleSupplierData } from "./sample/suppliers";
+import { getSampleStore } from "./sample/store";
+import { SAMPLE_USERS, type SampleSupplierData } from "./sample/suppliers";
 import { buildSupplierDetail, type SupplierDetail } from "./supplier-detail";
 
 /*
@@ -15,17 +16,8 @@ import { buildSupplierDetail, type SupplierDetail } from "./supplier-detail";
  * under the company's row-level security. Screens only see these functions.
  */
 
-const cacheByKey = new Map<string, SampleSupplierData>();
-
 function loadData(ctx: RequestContext): SampleSupplierData {
-  const key = `${ctx.company.slug}|${ctx.today}`;
-  let data = cacheByKey.get(key);
-  if (!data) {
-    if (cacheByKey.size > 20) cacheByKey.clear();
-    data = generateSampleSuppliers(ctx.company.slug, ctx.today);
-    cacheByKey.set(key, data);
-  }
-  return data;
+  return getSampleStore(ctx.company.slug, ctx.today);
 }
 
 function evaluate(ctx: RequestContext, data: SampleSupplierData): RequirementResult[] {

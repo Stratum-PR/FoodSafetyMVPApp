@@ -57,6 +57,8 @@ function rng(seed: number) {
   return { next, int, pick };
 }
 
+const minDate = (a: IsoDate, b: IsoDate): IsoDate => (a < b ? a : b);
+
 function hash(text: string): number {
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
@@ -351,7 +353,8 @@ export function generateSampleSuppliers(companySlug: string, today: IsoDate): Sa
       subject: requirement.subject,
       state: kind === "pending" ? "pending_review" : "accepted",
       issuedOn,
-      receivedOn: addDays(issuedOn, r.int(0, 20)),
+      // Received a few days after issue, but never after today.
+      receivedOn: minDate(addDays(issuedOn, r.int(0, 20)), today),
       expiresOn: printed ? addMonths(issuedOn, validity) : undefined,
       uploadedBy: r.pick(uploaders),
     });
@@ -369,6 +372,17 @@ export function generateSampleSuppliers(companySlug: string, today: IsoDate): Sa
       uploadedBy: r.pick(uploaders),
     });
   }
+
+  // Accepted documents were reviewed by a colleague other than the uploader (separation of
+  // duties), a few days after arriving. Derived without the random generator so the rest of
+  // the data stays the same.
+  documents.forEach((d, i) => {
+    if (d.state !== "accepted") return;
+    const uploader = uploaders.indexOf(d.uploadedBy);
+    d.reviewedBy = uploaders[(uploader + 1 + (i % (uploaders.length - 1))) % uploaders.length];
+    const reviewed = addDays(d.receivedOn, 1 + (i % 6));
+    d.reviewedOn = minDate(reviewed, today);
+  });
 
   return { parties, materials, sources, documents };
 }

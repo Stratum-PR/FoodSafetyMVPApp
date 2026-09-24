@@ -43,6 +43,22 @@ describe("sample supplier data", () => {
     expect(data.parties.some((p) => p.lifecycle === "onboarding")).toBe(true);
   });
 
+  it.each(SAMPLE_COMPANIES.map((c) => c.slug))("%s never has documents from the future", (slug) => {
+    const future = generateSampleSuppliers(slug, TODAY).documents.filter(
+      (d) => d.receivedOn > TODAY || (d.issuedOn ?? "") > TODAY,
+    );
+    expect(future.map((d) => d.id)).toEqual([]);
+  });
+
+  it("has every accepted document reviewed by someone other than its uploader", () => {
+    const data = generateSampleSuppliers("alimentos-cordillera", TODAY);
+    for (const d of data.documents.filter((x) => x.state === "accepted")) {
+      expect(d.reviewedBy).toBeDefined();
+      expect(d.reviewedBy).not.toBe(d.uploadedBy);
+      expect(d.reviewedOn! >= d.receivedOn && d.reviewedOn! <= TODAY).toBe(true);
+    }
+  });
+
   it("uses only fictional names", () => {
     const text = JSON.stringify(SAMPLE_COMPANIES.map((c) => generateSampleSuppliers(c.slug, TODAY)));
     expect(text).not.toMatch(/nombre-real/i);
