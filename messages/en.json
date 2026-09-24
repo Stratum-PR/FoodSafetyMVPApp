@@ -23,9 +23,10 @@
     "english": "English",
     "userMenu": "User menu",
     "sampleUser": "Sample user",
-    "sampleRole": "Quality manager",
     "signOut": "Sign out",
-    "signOutSoon": "Sign-in arrives with the database"
+    "signOutSoon": "Sign-in arrives with the database",
+    "previewAs": "View as",
+    "previewHint": "Sample-data preview: change the role to see what each user sees."
   },
   "sample": {
     "badge": "Sample data",
@@ -34,7 +35,8 @@
   "status": {
     "current": "Current",
     "expiring": "Expiring",
-    "missing": "Missing"
+    "missing": "Missing",
+    "expired": "Expired"
   },
   "pages": {
     "panel": {
@@ -108,5 +110,18 @@
     "colDocument": "Document",
     "colStatus": "Status",
     "colExpires": "Expires"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Administrator",
+    "quality_manager": "Quality manager",
+    "staff": "Quality staff",
+    "purchasing": "Purchasing",
+    "warehouse": "Warehouse",
+    "viewer": "Read only"
+  },
+  "noAccess": {
+    "title": "Your role does not have access to this section",
+    "body": "If you need it, ask an administrator at your company to change your role."
   }
 }

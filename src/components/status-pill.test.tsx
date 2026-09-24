@@ -6,7 +6,7 @@ import en from "../../messages/en.json";
 import es from "../../messages/es.json";
 import { StatusPill } from "./status-pill";
 
-function renderIn(locale: "es" | "en", status: "current" | "expiring" | "missing") {
+function renderIn(locale: "es" | "en", status: "current" | "expiring" | "expired" | "missing") {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === "es" ? es : en}>
       <StatusPill status={status} />
@@ -18,6 +18,7 @@ describe("StatusPill", () => {
   it.each([
     ["current", "Vigente"],
     ["expiring", "Por vencer"],
+    ["expired", "Vencido"],
     ["missing", "Falta"],
   ] as const)("shows %s as %s in Spanish", (status, label) => {
     renderIn("es", status);
