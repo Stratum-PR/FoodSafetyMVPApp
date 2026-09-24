@@ -1,3 +1,4 @@
+import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import { addDays, addMonths, type IsoDate } from "@/domain/dates";
 import { allRequirements, type SupplierData } from "@/domain/requirements";
 import type {
@@ -382,6 +383,33 @@ export function generateSampleSuppliers(companySlug: string, today: IsoDate): Sa
     d.reviewedBy = uploaders[(uploader + 1 + (i % (uploaders.length - 1))) % uploaders.length];
     const reviewed = addDays(d.receivedOn, 1 + (i % 6));
     d.reviewedOn = minDate(reviewed, today);
+  });
+
+  // History: about a third of the accepted documents replaced one or two earlier versions
+  // (last year's certificate, and the one before). Kept as "superseded", so they never count
+  // toward compliance but show up in the document's history.
+  const current = documents.filter((d) => d.state === "accepted" && d.typeCode !== "coa" && d.issuedOn);
+  current.forEach((d, i) => {
+    if (i % 3 !== 0) return;
+    const validity = findType(DEFAULT_CATALOG, d.typeCode)?.validityMonths ?? 12;
+    const versions = i % 9 === 0 ? 2 : 1;
+    for (let v = 1; v <= versions; v++) {
+      const issuedOn = addMonths(d.issuedOn!, -validity * v);
+      const receivedOn = addDays(issuedOn, 1 + ((i + v) % 10));
+      const uploader = (i + v) % uploaders.length;
+      documents.push({
+        id: `doc-${documents.length + 1}`,
+        typeCode: d.typeCode,
+        subject: d.subject,
+        state: "superseded",
+        issuedOn,
+        receivedOn,
+        expiresOn: d.expiresOn ? addMonths(issuedOn, validity) : undefined,
+        uploadedBy: uploaders[uploader],
+        reviewedBy: uploaders[(uploader + 1) % uploaders.length],
+        reviewedOn: addDays(receivedOn, 2),
+      });
+    }
   });
 
   return { parties, materials, sources, documents };

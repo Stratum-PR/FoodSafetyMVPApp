@@ -8,11 +8,12 @@ import type { ReactNode } from "react";
 import { documentHref, navHref, supplierHref } from "@/components/app-shell/nav-items";
 import { DocumentStateBadge } from "@/components/documents/document-state-badge";
 import { ReviewForm } from "@/components/documents/review-form";
+import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getRequestContext } from "@/server/context";
 import { reviewDocumentAction } from "@/server/document-actions";
-import { filterDocuments } from "@/server/document-list";
+import { type DocumentRow, filterDocuments } from "@/server/document-list";
 import { getDocument, listDocuments } from "@/server/documents";
 
 type Props = PageProps<"/[company]/documentos/[document]">;
@@ -52,6 +53,43 @@ export default async function Page({ params }: Props) {
     (r) => r.id !== doc.id && r.uploadedBy !== ctx.actor.userId,
   );
   const queueHref = navHref(company, "documentos");
+
+  const historyColumns: Column<DocumentRow>[] = [
+    {
+      key: "version",
+      header: t("history.version"),
+      primary: true,
+      cell: (v) => (
+        <span className="inline-flex flex-wrap items-center gap-2">
+          {v.id === doc.id ? (
+            <span>{date(v.issuedOn ?? v.receivedOn)}</span>
+          ) : (
+            <Link href={documentHref(company, v.id)} className="font-semibold text-primary hover:underline">
+              {date(v.issuedOn ?? v.receivedOn)}
+            </Link>
+          )}
+          {v.state === "accepted" ? (
+            <span className="rounded-full border border-status-current bg-status-current-bg px-2 py-0.5 text-xs font-semibold text-status-current">
+              {t("history.active")}
+            </span>
+          ) : null}
+          {v.id === doc.id ? (
+            <span className="text-xs font-normal text-muted-foreground">{t("history.viewing")}</span>
+          ) : null}
+        </span>
+      ),
+    },
+    { key: "received", header: t("history.received"), cell: (v) => date(v.receivedOn), className: "tabular-nums" },
+    {
+      key: "expires",
+      header: t("history.expires"),
+      cell: (v) => (v.expires ? date(v.expires) : "—"),
+      className: "tabular-nums",
+    },
+    { key: "state", header: t("history.state"), cell: (v) => <DocumentStateBadge state={v.state} /> },
+    { key: "uploadedBy", header: t("history.uploadedBy"), cell: (v) => v.uploadedByName },
+    { key: "reviewedBy", header: t("history.reviewedBy"), cell: (v) => v.reviewedByName ?? "—" },
+  ];
 
   const expiresNote = !doc.expires
     ? t("expiresNever")
@@ -148,6 +186,23 @@ export default async function Page({ params }: Props) {
           </div>
         </section>
       </div>
+
+      <section className="grid grid-cols-1 gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">{t("history.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("history.hint")}</p>
+        </div>
+        {doc.versions.length > 1 ? (
+          <ResponsiveTable
+            columns={historyColumns}
+            rows={doc.versions}
+            rowKey={(v) => v.id}
+            caption={t("history.caption")}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("history.only")}</p>
+        )}
+      </section>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { IsoDate } from "@/domain/dates";
 import { AppError } from "@/domain/errors";
 import { checkCanReview, type ReviewDecision, type ReviewDenial, reviewDocument } from "@/domain/review";
+import { documentVersions } from "@/domain/versions";
 
 import { type RequestContext, requirePermission } from "./context";
 import { type DocumentRow, toDocumentRows } from "./document-list";
@@ -32,6 +33,8 @@ export type DocumentDetail = DocumentRow & {
   rejectionReason?: string;
   /** Why the current user can't accept or reject it; null when they can. */
   reviewDenial: ReviewDenial | null;
+  /** Every version of this document, newest first, including this one. Nothing is ever deleted. */
+  versions: DocumentRow[];
 };
 
 export async function getDocument(ctx: RequestContext, id: string): Promise<DocumentDetail | null> {
@@ -51,6 +54,7 @@ export async function getDocument(ctx: RequestContext, id: string): Promise<Docu
     reviewedOn: doc.reviewedOn,
     rejectionReason: doc.rejectionReason,
     reviewDenial: checkCanReview(ctx.actor, doc),
+    versions: toDocumentRows({ ...store, documents: documentVersions(doc, store.documents) }, SAMPLE_USERS),
   };
 }
 

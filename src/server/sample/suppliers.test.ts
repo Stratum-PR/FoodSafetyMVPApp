@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_CATALOG } from "@/domain/catalog";
 import { evaluateCompliance, summarize } from "@/domain/compliance";
+import { documentVersions } from "@/domain/versions";
 
 import { SAMPLE_COMPANIES } from "./companies";
 import { generateSampleSuppliers } from "./suppliers";
@@ -56,6 +57,17 @@ describe("sample supplier data", () => {
       expect(d.reviewedBy).toBeDefined();
       expect(d.reviewedBy).not.toBe(d.uploadedBy);
       expect(d.reviewedOn! >= d.receivedOn && d.reviewedOn! <= TODAY).toBe(true);
+    }
+  });
+
+  it("gives some documents an older history, never more than one active version", () => {
+    const data = generateSampleSuppliers("alimentos-cordillera", TODAY);
+    const superseded = data.documents.filter((d) => d.state === "superseded");
+    expect(superseded.length).toBeGreaterThan(10);
+    for (const old of superseded) {
+      const versions = documentVersions(old, data.documents);
+      expect(versions.filter((d) => d.state === "accepted")).toHaveLength(1);
+      expect(versions[0].state).toBe("accepted");
     }
   });
 

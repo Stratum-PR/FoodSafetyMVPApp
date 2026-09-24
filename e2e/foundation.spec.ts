@@ -278,3 +278,29 @@ test("an unknown document shows a friendly page inside the app", async ({ page }
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1, name: "No encontramos este documento" })).toBeVisible();
 });
+
+test("a replaced document stays on file and shows its full history", async ({ page }) => {
+  await page.goto(`${COMPANY}/documentos?estado=reemplazados`);
+  const row = page.locator("main :is(tbody tr, ul[aria-label='Documentos'] > li)").filter({ visible: true }).first();
+  await row.locator("a[href*='/documentos/']").first().click();
+
+  await expect(page.getByText("Reemplazado por un documento más reciente.")).toBeVisible();
+  const history = page.getByRole("heading", { level: 2, name: "Historial de este documento" });
+  await expect(history).toBeVisible();
+  await expect(page.getByText("Estás viendo esta").filter({ visible: true })).toBeVisible();
+  await expect(page.getByText("Activa", { exact: true }).filter({ visible: true })).toHaveCount(1);
+  await expectNoSeriousA11yIssues(page);
+
+  // The active version is one click away, and lists this one in its history too.
+  const before = page.url();
+  await page
+    .locator("main :is(tbody tr, ul[aria-label='Versiones del documento'] > li)")
+    .filter({ visible: true })
+    .filter({ hasText: "Activa" })
+    .locator("a")
+    .first()
+    .click();
+  await expect(page).not.toHaveURL(before);
+  await expect(page.getByText(/Aceptado por /)).toBeVisible();
+  await expect(page.getByText("Reemplazado", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
