@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Stratum design tokens. Colors come from the marketing site (FoodSafetyLandingPage,
+  css/styles.css) so the product and the site feel like one company:
+  navy #1E2B7E, blue #266AB2, sky #5FA3DA, sand #E6E09E, olive #5B5410, ink #16204F.
+  shadcn components read the semantic tokens below; don't use raw hex in components.
+*/
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Stratum brand and document-status colors */
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-sand: var(--brand-sand);
+  --color-brand-sand-soft: var(--brand-sand-soft);
+  --color-brand-olive: var(--brand-olive);
+  --color-status-current: var(--status-current);
+  --color-status-current-bg: var(--status-current-bg);
+  --color-status-expiring: var(--status-expiring);
+  --color-status-expiring-bg: var(--status-expiring-bg);
+  --color-status-missing: var(--status-missing);
+  --color-status-missing-bg: var(--status-missing-bg);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #f5f6fb;
+  --foreground: #16204f;
+  --card: #ffffff;
+  --card-foreground: #16204f;
+  --popover: #ffffff;
+  --popover-foreground: #16204f;
+  --primary: #1e2b7e;
+  --primary-foreground: #ffffff;
+  --secondary: #eceff8;
+  --secondary-foreground: #1e2b7e;
+  --muted: #eceff8;
+  --muted-foreground: #586187;
+  --accent: #e8ecf7;
+  --accent-foreground: #16204f;
+  --destructive: #b3261e;
+  --border: #dde1ec;
+  --input: #d3d8e6;
+  --ring: #266ab2;
+  --chart-1: #1e2b7e;
+  --chart-2: #266ab2;
+  --chart-3: #5fa3da;
+  --chart-4: #d9cf6e;
+  --chart-5: #5b5410;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3a4270;
+  --sidebar-primary: #1e2b7e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eceff8;
+  --sidebar-accent-foreground: #16204f;
+  --sidebar-border: #dde1ec;
+  --sidebar-ring: #266ab2;
+
+  --brand-navy: #1e2b7e;
+  --brand-blue: #266ab2;
+  --brand-sand: #e6e09e;
+  --brand-sand-soft: #f6f3cf;
+  --brand-olive: #5b5410;
+  --status-current: #1b7a4c;
+  --status-current-bg: #e3f3eb;
+  --status-expiring: #8f5400;
+  --status-expiring-bg: #fbefd9;
+  --status-missing: #b3261e;
+  --status-missing-bg: #fbe7e5;
+}
+
+.dark {
+  --background: #0c1130;
+  --foreground: #e7eaf7;
+  --card: #141b42;
+  --card-foreground: #e7eaf7;
+  --popover: #141b42;
+  --popover-foreground: #e7eaf7;
+  --primary: #a9c8f2;
+  --primary-foreground: #0c1130;
+  --secondary: #1a2250;
+  --secondary-foreground: #e7eaf7;
+  --muted: #1a2250;
+  --muted-foreground: #9ea6cb;
+  --accent: #1f2858;
+  --accent-foreground: #e7eaf7;
+  --destructive: #f29389;
+  --border: #27305e;
+  --input: #36407a;
+  --ring: #7fb2e8;
+  --chart-1: #a9c8f2;
+  --chart-2: #7fb2e8;
+  --chart-3: #5fa3da;
+  --chart-4: #e6e09e;
+  --chart-5: #d9cf6e;
+  --sidebar: #11173a;
+  --sidebar-foreground: #c3c9e6;
+  --sidebar-primary: #a9c8f2;
+  --sidebar-primary-foreground: #0c1130;
+  --sidebar-accent: #1a2250;
+  --sidebar-accent-foreground: #e7eaf7;
+  --sidebar-border: #27305e;
+  --sidebar-ring: #7fb2e8;
+
+  --brand-navy: #a9c8f2;
+  --brand-blue: #7fb2e8;
+  --brand-sand: #e6e09e;
+  --brand-sand-soft: #2e2b14;
+  --brand-olive: #e6e09e;
+  --status-current: #5ccb94;
+  --status-current-bg: #123427;
+  --status-expiring: #edb25a;
+  --status-expiring-bg: #3a2a10;
+  --status-missing: #f29389;
+  --status-missing-bg: #3e1b1b;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
