@@ -28,22 +28,22 @@ Vault (step 6). IDs such as the subscription ID or tenant ID are not secrets.
                                                                └──▶ Application Insights ─▶ Log Analytics
 ```
 
-| Service | Used for | Needed when |
-|---|---|---|
-| Resource groups, tags, budgets | Organization and cost control | First |
-| Log Analytics + Application Insights | Errors (the reference codes on error pages), logs, alerts | First |
-| User-assigned managed identity | The app's identity: reads secrets, files and images without passwords | First |
-| Key Vault | Every secret (DB password, auth secrets, email key) | First |
-| Container Registry | The app's Docker images | Before the first deploy |
-| PostgreSQL Flexible Server | Suppliers, documents, decisions, history, users | Before real data |
-| Storage account (Blob) | Uploaded document files | Before real uploads |
-| Defender for Storage | Malware scanning of every upload | Before real uploads |
-| Container Apps environment + app | Runs the Next.js app | First deploy |
-| Custom domain + certificate | `app.stratumpr.com` | Before the pilot |
-| Entra app registration (GitHub OIDC) | Deploys from GitHub without stored passwords | First deploy |
-| Entra app registration (Microsoft sign-in) | "Sign in with Microsoft" | When sign-in is built |
-| Monitor alerts + action group | Emails you when something breaks | Before the pilot |
-| **Later:** Document Intelligence, Azure OpenAI, Container Apps Jobs | Reading certificates, AI search, reminders and expiry checks | After the core MVP |
+| Service                                                             | Used for                                                              | Needed when             |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------- |
+| Resource groups, tags, budgets                                      | Organization and cost control                                         | First                   |
+| Log Analytics + Application Insights                                | Errors (the reference codes on error pages), logs, alerts             | First                   |
+| User-assigned managed identity                                      | The app's identity: reads secrets, files and images without passwords | First                   |
+| Key Vault                                                           | Every secret (DB password, auth secrets, email key)                   | First                   |
+| Container Registry                                                  | The app's Docker images                                               | Before the first deploy |
+| PostgreSQL Flexible Server                                          | Suppliers, documents, decisions, history, users                       | Before real data        |
+| Storage account (Blob)                                              | Uploaded document files                                               | Before real uploads     |
+| Defender for Storage                                                | Malware scanning of every upload                                      | Before real uploads     |
+| Container Apps environment + app                                    | Runs the Next.js app                                                  | First deploy            |
+| Custom domain + certificate                                         | `app.stratumpr.com`                                                   | Before the pilot        |
+| Entra app registration (GitHub OIDC)                                | Deploys from GitHub without stored passwords                          | First deploy            |
+| Entra app registration (Microsoft sign-in)                          | "Sign in with Microsoft"                                              | When sign-in is built   |
+| Monitor alerts + action group                                       | Emails you when something breaks                                      | Before the pilot        |
+| **Later:** Document Intelligence, Azure OpenAI, Container Apps Jobs | Reading certificates, AI search, reminders and expiry checks          | After the core MVP      |
 
 Not in Azure: **sign-in** (Better Auth, inside the app, stored in Postgres), **email** (Resend,
 for now), **source code** (GitHub).
@@ -79,19 +79,19 @@ for now), **source code** (GitHub).
 
 ### Naming and tags
 
-| Resource | Dev | Prod | Rule |
-|---|---|---|---|
-| Resource group | `rg-stratum-dev` | `rg-stratum-prod` | |
-| Shared resource group | `rg-stratum-shared` (registry) | | |
-| Log Analytics | `log-stratum-dev` | `log-stratum-prod` | |
-| Application Insights | `appi-stratum-dev` | `appi-stratum-prod` | |
-| Managed identity | `id-stratum-dev` | `id-stratum-prod` | |
-| Key Vault | `kv-stratum-dev-<4 chars>` | `kv-stratum-prod-<4 chars>` | Globally unique, 3–24 chars |
-| Container Registry | `acrstratum<4 chars>` (shared) | | Globally unique, letters and digits only |
-| PostgreSQL | `psql-stratum-dev` | `psql-stratum-prod` | Globally unique |
-| Storage account | `ststratumdev<4 chars>` | `ststratumprod<4 chars>` | Globally unique, lowercase letters and digits, 3–24 chars |
-| Container Apps environment | `cae-stratum-dev` | `cae-stratum-prod` | |
-| Container app | `ca-stratum-dev` | `ca-stratum-prod` | |
+| Resource                   | Dev                            | Prod                        | Rule                                                      |
+| -------------------------- | ------------------------------ | --------------------------- | --------------------------------------------------------- |
+| Resource group             | `rg-stratum-dev`               | `rg-stratum-prod`           |                                                           |
+| Shared resource group      | `rg-stratum-shared` (registry) |                             |                                                           |
+| Log Analytics              | `log-stratum-dev`              | `log-stratum-prod`          |                                                           |
+| Application Insights       | `appi-stratum-dev`             | `appi-stratum-prod`         |                                                           |
+| Managed identity           | `id-stratum-dev`               | `id-stratum-prod`           |                                                           |
+| Key Vault                  | `kv-stratum-dev-<4 chars>`     | `kv-stratum-prod-<4 chars>` | Globally unique, 3–24 chars                               |
+| Container Registry         | `acrstratum<4 chars>` (shared) |                             | Globally unique, letters and digits only                  |
+| PostgreSQL                 | `psql-stratum-dev`             | `psql-stratum-prod`         | Globally unique                                           |
+| Storage account            | `ststratumdev<4 chars>`        | `ststratumprod<4 chars>`    | Globally unique, lowercase letters and digits, 3–24 chars |
+| Container Apps environment | `cae-stratum-dev`              | `cae-stratum-prod`          |                                                           |
+| Container app              | `ca-stratum-dev`               | `ca-stratum-prod`           |                                                           |
 
 Use the same 4 random characters everywhere (e.g. `k7q2`). Tag every resource group with
 `project=stratum-fsqms`, `env=dev|prod`, `owner=admin@stratumpr.com`.
@@ -208,13 +208,13 @@ that's intended (it protects against accidents and attackers). It can't be turne
 **Secrets to create** (Portal → Key Vault → Secrets → Generate/Import, so values never pass
 through a terminal history). Names use hyphens:
 
-| Secret name | Value | When |
-|---|---|---|
-| `database-url` | Postgres connection string for the **app** role (step 7) | Step 7 |
-| `better-auth-secret` | 32+ random bytes (`openssl rand -base64 32`) | When sign-in is built |
-| `resend-api-key` | Resend API key (full access) | When email is built |
-| `google-client-secret` | Google OAuth client secret | When sign-in is built |
-| `microsoft-client-secret` | Entra app secret (step 13) | When sign-in is built |
+| Secret name               | Value                                                    | When                  |
+| ------------------------- | -------------------------------------------------------- | --------------------- |
+| `database-url`            | Postgres connection string for the **app** role (step 7) | Step 7                |
+| `better-auth-secret`      | 32+ random bytes (`openssl rand -base64 32`)             | When sign-in is built |
+| `resend-api-key`          | Resend API key (full access)                             | When email is built   |
+| `google-client-secret`    | Google OAuth client secret                               | When sign-in is built |
+| `microsoft-client-secret` | Entra app secret (step 13)                               | When sign-in is built |
 
 **Check:** `az keyvault secret list --vault-name kv-stratum-$ENV-$SUFFIX -o table` works for you.
 
@@ -233,13 +233,13 @@ Portal is recommended here (the options change often): Azure Database for Postgr
 Flexible server → Create.
 
 - **Basics:** resource group `$RG`, name `psql-stratum-$ENV`, region East US 2, version 16+,
-  workload type *Development* (dev) / *Production (Small/Medium)* (prod), compute as above,
+  workload type _Development_ (dev) / _Production (Small/Medium)_ (prod), compute as above,
   high availability **off** (on later for prod if the SLA needs it).
-- **Authentication:** *PostgreSQL and Microsoft Entra authentication*. Admin login
+- **Authentication:** _PostgreSQL and Microsoft Entra authentication_. Admin login
   `stratumadmin` with a long generated password. **Save that password straight into Key Vault**
   as `postgres-admin-password`; it's only for migrations and emergencies. Set yourself as the
   Entra admin.
-- **Networking:** *Public access*. Firewall rules:
+- **Networking:** _Public access_. Firewall rules:
   - **Allow public access from any Azure service** → **Yes** (the app's outbound IPs aren't
     fixed on the Container Apps consumption plan). This lets other Azure customers' services
     reach the login screen, not the data: the password, TLS and the rules below protect it.
@@ -306,7 +306,7 @@ az storage container create --account-name ststratum$ENV$SUFFIX --name documents
 
 - Prod: consider **ZRS** (`Standard_ZRS`) for protection against a datacenter failure.
 - Shared-key access is **off**, so connection strings don't work; the app authenticates with
-  its identity (and signs download links with a *user delegation key*).
+  its identity (and signs download links with a _user delegation key_).
 - Files are stored as `documents/<tenant_id>/<document_id>/<file name>`.
 
 **Check:** Portal → the storage account → Containers shows `documents`; "Allow blob anonymous
@@ -393,7 +393,7 @@ Settings to review in the Portal (the container app → Settings):
   **min 1** (always on, as decided).
 - **Health probes:** liveness and readiness on HTTP port 3000, path `/` for now (a `/api/health`
   endpoint comes with the deploy step).
-- **Ingress:** HTTPS only (*Allow insecure connections* off).
+- **Ingress:** HTTPS only (_Allow insecure connections_ off).
 - **Revision mode:** Single for dev; prod can use Multiple for zero-downtime switches.
 
 **Check:** the app's URL (`*.azurecontainerapps.io`) opens the hello-world page.
@@ -435,8 +435,8 @@ click (a GitHub environment with you as the required reviewer).
 
 1. Create an app registration for GitHub: Entra ID → App registrations → New registration →
    `github-stratum-deploy`, single tenant. Note its **Application (client) ID**.
-2. Certificates & secrets → **Federated credentials** → Add → *GitHub Actions deploying Azure
-   resources*:
+2. Certificates & secrets → **Federated credentials** → Add → _GitHub Actions deploying Azure
+   resources_:
    - Organization `Stratum-PR`, repository `FoodSafetyMVPApp`
    - Entity type **Environment**, name `dev` (repeat with `prod`)
 3. Give it only what deploys need:
@@ -447,7 +447,7 @@ click (a GitHub environment with you as the required reviewer).
    az role assignment create --assignee-object-id $GH_APP --assignee-principal-type ServicePrincipal \
      --role "Container Apps Contributor" --scope $(az group show -n $RG --query id -o tsv)
    ```
-   (If a deploy fails for missing rights, use *Contributor* on the resource group only; never on
+   (If a deploy fails for missing rights, use _Contributor_ on the resource group only; never on
    the subscription.)
 4. In GitHub → FoodSafetyMVPApp → Settings → Environments: create `dev` and `prod` (prod with
    **Required reviewers: you**). Add these **variables** (not secrets; they're identifiers):
@@ -483,27 +483,27 @@ not Azure.
 Monitor → Alerts → Action groups → Create `ag-stratum` (email admin@stratumpr.com, optionally
 SMS). Then alert rules:
 
-| Alert | Where | Condition |
-|---|---|---|
-| App errors | Application Insights | Failed requests > 5 in 5 minutes |
-| App down | Application Insights → Availability | Standard test on `https://app.stratumpr.com` every 5 min from 3 locations |
-| Restarts | Container app | Restart count > 3 in 15 minutes |
-| Database CPU | PostgreSQL | CPU > 80% for 15 minutes |
-| Database storage | PostgreSQL | Storage used > 80% |
-| Malware found | Defender for Cloud | Email notifications for High severity alerts (Defender → Environment settings → Email notifications) |
-| Budget | Cost Management | Already done in step 2 |
+| Alert            | Where                               | Condition                                                                                            |
+| ---------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| App errors       | Application Insights                | Failed requests > 5 in 5 minutes                                                                     |
+| App down         | Application Insights → Availability | Standard test on `https://app.stratumpr.com` every 5 min from 3 locations                            |
+| Restarts         | Container app                       | Restart count > 3 in 15 minutes                                                                      |
+| Database CPU     | PostgreSQL                          | CPU > 80% for 15 minutes                                                                             |
+| Database storage | PostgreSQL                          | Storage used > 80%                                                                                   |
+| Malware found    | Defender for Cloud                  | Email notifications for High severity alerts (Defender → Environment settings → Email notifications) |
+| Budget           | Cost Management                     | Already done in step 2                                                                               |
 
 ---
 
 ## 15. Later (after the core MVP)
 
-| Service | For | Notes |
-|---|---|---|
-| **Azure AI Document Intelligence** | Reading dates, issuer and scope from certificates | S0 tier; pay per page |
-| **Azure OpenAI** (Azure AI Foundry) | Embeddings (pgvector search) and the assistant | Use models covered by the startup credits; check East US 2 availability |
-| **Container Apps Jobs** | Daily expiry checks, reminders to suppliers, data exports | Scheduled jobs in the same environment; nothing always-on |
-| **Private networking ("campus")** | VNet, private endpoints for Postgres, Storage, Key Vault | Replaces "allow Azure services"; needs a workload-profiles environment |
-| **Azure Communication Services** | Email instead of Resend | Only if we move email into Azure |
+| Service                             | For                                                       | Notes                                                                   |
+| ----------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Azure AI Document Intelligence**  | Reading dates, issuer and scope from certificates         | S0 tier; pay per page                                                   |
+| **Azure OpenAI** (Azure AI Foundry) | Embeddings (pgvector search) and the assistant            | Use models covered by the startup credits; check East US 2 availability |
+| **Container Apps Jobs**             | Daily expiry checks, reminders to suppliers, data exports | Scheduled jobs in the same environment; nothing always-on               |
+| **Private networking ("campus")**   | VNet, private endpoints for Postgres, Storage, Key Vault  | Replaces "allow Azure services"; needs a workload-profiles environment  |
+| **Azure Communication Services**    | Email instead of Resend                                   | Only if we move email into Azure                                        |
 
 ---
 
@@ -512,16 +512,16 @@ SMS). Then alert rules:
 Estimates only; check the [Azure pricing calculator](https://azure.microsoft.com/pricing/calculator/)
 for East US 2 before relying on them.
 
-| Service | Dev | Prod (pilot) |
-|---|---|---|
-| Container Apps | ~$0–5 (scales to zero, free grant) | ~$25–45 (1 replica always on, 0.5 vCPU / 1 GiB) |
-| PostgreSQL Flexible | ~$15–20 (B1ms + 32 GiB) | ~$30–40 (B2s + 32 GiB + longer backups) |
-| Container Registry (Basic, shared) | ~$5 | (shared) |
-| Storage (Blob) | < $1 | ~$1–5 |
-| Defender for Storage | ~$10 per account + scanning per GB | ~$10 + scanning per GB |
-| Log Analytics / App Insights | ~$0–5 (first GBs free) | ~$5–15 |
-| Key Vault | < $1 | < $1 |
-| **Total** | **~$35–50** | **~$75–120** |
+| Service                            | Dev                                | Prod (pilot)                                    |
+| ---------------------------------- | ---------------------------------- | ----------------------------------------------- |
+| Container Apps                     | ~$0–5 (scales to zero, free grant) | ~$25–45 (1 replica always on, 0.5 vCPU / 1 GiB) |
+| PostgreSQL Flexible                | ~$15–20 (B1ms + 32 GiB)            | ~$30–40 (B2s + 32 GiB + longer backups)         |
+| Container Registry (Basic, shared) | ~$5                                | (shared)                                        |
+| Storage (Blob)                     | < $1                               | ~$1–5                                           |
+| Defender for Storage               | ~$10 per account + scanning per GB | ~$10 + scanning per GB                          |
+| Log Analytics / App Insights       | ~$0–5 (first GBs free)             | ~$5–15                                          |
+| Key Vault                          | < $1                               | < $1                                            |
+| **Total**                          | **~$35–50**                        | **~$75–120**                                    |
 
 ---
 
