@@ -71,8 +71,12 @@ describe("sample supplier data", () => {
     }
   });
 
-  it("uses only fictional names", () => {
-    const text = JSON.stringify(SAMPLE_COMPANIES.map((c) => generateSampleSuppliers(c.slug, TODAY)));
-    expect(text).not.toMatch(/altura/i);
+  it("uses only fictional names, built from the generator's generic words", () => {
+    // "<Generic word> <Generic place> <legal suffix>", e.g. "Molinos Brisa Azul Inc."
+    const generated =
+      /^(Molinos|Productos|Industrias|Procesadora|Especias|Lácteos|Aceites|Harinas|Frutas|Conservas|Ingredientes|Cacaos|Envases|Empaques|Plásticos|Etiquetas|Cartonera|Distribuidora|Almacenes|Suministros|Importadora|Comercial) .+ (Inc\.|S\.A\. de C\.V\.|S\.R\.L\.|S\.A\.S\.|S\.A\.|S\.L\.)$/;
+    for (const c of SAMPLE_COMPANIES) {
+      for (const p of generateSampleSuppliers(c.slug, TODAY).parties) expect(p.name).toMatch(generated);
+    }
   });
 });
