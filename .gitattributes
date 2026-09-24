@@ -1,0 +1,4 @@
+# Keep LF everywhere (Prettier and CI expect it), regardless of the local git setup.
+* text=auto eol=lf
+*.png binary
+*.ico binary

@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "Stratum",
+    "description": "Control de suplidores y documentos de inocuidad"
+  },
+  "nav": {
+    "skip": "Saltar al contenido",
+    "label": "Navegación principal",
+    "panel": "Panel",
+    "suppliers": "Suplidores",
+    "documents": "Documentos",
+    "requests": "Solicitudes",
+    "history": "Historial",
+    "settings": "Ajustes",
+    "openMenu": "Abrir menú",
+    "menuTitle": "Menú"
+  },
+  "topbar": {
+    "company": "Empresa",
+    "switchCompany": "Cambiar de empresa",
+    "language": "Idioma",
+    "spanish": "Español",
+    "english": "English",
+    "userMenu": "Menú de usuario",
+    "sampleUser": "Usuario de ejemplo",
+    "sampleRole": "Gerente de calidad",
+    "signOut": "Cerrar sesión",
+    "signOutSoon": "El inicio de sesión llega con la base de datos"
+  },
+  "sample": {
+    "badge": "Datos de ejemplo",
+    "hint": "Estas empresas, suplidores y documentos son ficticios. Ningún dato es de un cliente real."
+  },
+  "status": {
+    "current": "Vigente",
+    "expiring": "Por vencer",
+    "missing": "Falta"
+  },
+  "pages": {
+    "panel": {
+      "title": "Panel",
+      "description": "Lo que necesita una decisión hoy: vencimientos, documentos por revisar y suplidores pendientes."
+    },
+    "suppliers": {
+      "title": "Suplidores",
+      "description": "Manufactureros y distribuidores, sus ingredientes y el estado de su expediente."
+    },
+    "documents": {
+      "title": "Documentos",
+      "description": "Certificados y documentos por revisar, vigentes, por vencer y faltantes."
+    },
+    "requests": {
+      "title": "Solicitudes",
+      "description": "Documentos pedidos a suplidores, con sus recordatorios y fechas límite."
+    },
+    "history": {
+      "title": "Historial",
+      "description": "Quién hizo qué, cuándo y por qué, en cada suplidor y documento."
+    },
+    "settings": {
+      "title": "Ajustes",
+      "description": "Datos de la empresa, usuarios, roles y catálogo de documentos."
+    }
+  },
+  "empty": {
+    "buildingTitle": "Esta sección se construye en las próximas semanas",
+    "buildingBody": "Por ahora el marco de la aplicación está listo: navegación, idiomas y diseño. Las pantallas reales llegan con los datos de ejemplo."
+  },
+  "home": {
+    "title": "Escoge una empresa",
+    "description": "Cada empresa tiene su propio espacio. Tus datos nunca se mezclan con los de otra empresa."
+  },
+  "errors": {
+    "title": "Algo salió mal",
+    "body": "No pudimos mostrar esta página. Inténtalo otra vez. Si el problema sigue, escríbenos a soporte@stratumpr.com con este código.",
+    "reference": "Referencia: {code}",
+    "noReference": "sin referencia",
+    "retry": "Intentar otra vez",
+    "home": "Ir al inicio",
+    "notFoundTitle": "No encontramos esta página",
+    "notFoundBody": "La dirección no existe o ya no está disponible."
+  },
+  "review": {
+    "title": "Revisión de componentes",
+    "description": "Todas las piezas del sistema de diseño, para aprobar el aspecto antes de construir pantallas reales.",
+    "colors": "Colores",
+    "typography": "Tipografía",
+    "buttons": "Botones",
+    "statuses": "Estados de documentos",
+    "forms": "Formularios",
+    "table": "Tabla (en teléfono se convierte en tarjetas)",
+    "empty": "Estado vacío",
+    "headingSample": "Suplidores y documentos, siempre al día",
+    "bodySample": "Stratum mantiene vigentes los certificados de cada suplidor, pide los que faltan y te avisa antes de que venzan.",
+    "primary": "Principal",
+    "secondary": "Secundario",
+    "outline": "Contorno",
+    "ghost": "Discreto",
+    "destructive": "Eliminar",
+    "supplierName": "Nombre del suplidor",
+    "supplierPlaceholder": "Ej.: Frutas del Sur",
+    "partyType": "Tipo",
+    "manufacturer": "Manufacturero",
+    "distributor": "Distribuidor",
+    "notes": "Notas",
+    "colSupplier": "Suplidor",
+    "colType": "Tipo",
+    "colDocument": "Documento",
+    "colStatus": "Estado",
+    "colExpires": "Vence"
+  }
+}
