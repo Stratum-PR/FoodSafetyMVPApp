@@ -45,10 +45,10 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background/90 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-1.5 border-b bg-background/90 px-3 backdrop-blur sm:gap-2 sm:px-6">
           <MobileNav company={company.slug} />
           <CompanySwitcher current={company} companies={companies} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
             {sampleData ? (
               <span className="hidden sm:inline-flex">
                 <SampleDataBadge />

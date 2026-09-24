@@ -21,9 +21,16 @@ export function MobileNav({ company }: { company: string }) {
         <Menu aria-hidden />
       </SheetTrigger>
       <SheetContent side="left" className="w-72 bg-sidebar p-4">
-        <SheetHeader className="p-0">
+        {/* pr-10 keeps the logo clear of the sheet's close button; self-start stops it stretching */}
+        <SheetHeader className="p-0 pr-10">
           <SheetTitle className="sr-only">{t("menuTitle")}</SheetTitle>
-          <Image src="/brand/stratum-logo.png" alt="Stratum" width={3834} height={720} className="h-7 w-auto" />
+          <Image
+            src="/brand/stratum-logo.png"
+            alt="Stratum"
+            width={3834}
+            height={720}
+            className="h-7 w-auto self-start"
+          />
         </SheetHeader>
         <nav aria-label={t("label")} className="mt-4">
           <NavLinks company={company} onNavigate={() => setOpen(false)} />

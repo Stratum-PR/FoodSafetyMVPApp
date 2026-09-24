@@ -25,12 +25,12 @@ export function CompanySwitcher({ current, companies }: { current: Company; comp
         render={
           <Button
             variant="outline"
-            className="h-9 max-w-[16rem] justify-between gap-2"
+            className="h-9 max-w-[9.5rem] min-w-0 justify-between gap-2 sm:max-w-[16rem]"
             aria-label={t("switchCompany")}
           />
         }
       >
-        <Building2 aria-hidden className="text-muted-foreground" />
+        <Building2 aria-hidden className="hidden text-muted-foreground sm:block" />
         <span className="truncate">{current.name}</span>
         <ChevronsUpDown aria-hidden className="text-muted-foreground" />
       </DropdownMenuTrigger>
