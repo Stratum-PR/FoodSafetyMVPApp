@@ -27,6 +27,9 @@ export type Party = {
   fei?: string;
   lifecycle: Lifecycle;
   approval: Approval;
+  /** approve_conditional: what must happen, and when it's reviewed again. */
+  conditions?: string;
+  conditionsReviewBy?: IsoDate;
   /** User who added the party. Used for separation of duties on approval. */
   createdBy: string;
 };

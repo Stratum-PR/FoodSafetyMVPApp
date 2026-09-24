@@ -167,7 +167,71 @@
     "approved": "Aprobado",
     "conditional": "Condicional",
     "pending": "Pendiente",
-    "suspended": "Suspendido"
+    "suspended": "Suspendido",
+    "title": "Aprobación",
+    "hint": "El sistema avisa, pero la decisión es tuya. Cada decisión queda registrada con quién, cuándo y por qué.",
+    "last": "Última decisión: {action}, por {name} el {date}.",
+    "none": "Todavía no hay decisiones registradas.",
+    "conditions": "Condiciones",
+    "reviewBy": "Revisar antes del {date}",
+    "warnings": {
+      "missing_documents": "{count, plural, one {Le falta o tiene vencido # documento.} other {Le faltan o tiene vencidos # documentos.}} Una aprobación condicional puede ser más apropiada.",
+      "nonconformities": "{count} no conformidades en los últimos 12 meses. Revisa si debe seguir aprobado; la decisión es tuya.",
+      "conditions_overdue": "Las condiciones debían revisarse el {date}."
+    },
+    "decide": "Cambiar estado",
+    "decision": "Decisión",
+    "actions": {
+      "start_verification": "Pasar a verificación",
+      "approve": "Aprobar",
+      "approve_conditional": "Aprobar con condiciones",
+      "suspend": "Suspender",
+      "deactivate": "Desactivar",
+      "reactivate": "Reactivar"
+    },
+    "actionHints": {
+      "start_verification": "Sus documentos se están revisando.",
+      "approve": "Queda en la lista de suplidores aprobados.",
+      "approve_conditional": "Aprobado mientras cumple las condiciones, con una fecha de revisión.",
+      "suspend": "No se le compra hasta que se vuelva a aprobar.",
+      "deactivate": "Ya no se le compra. Su historial se conserva.",
+      "reactivate": "Vuelve a la etapa en que estaba."
+    },
+    "reason": "Motivo",
+    "reasonRequired": "Motivo (obligatorio)",
+    "reasonHint": "Queda en el historial de aprobación.",
+    "conditionsLabel": "Condiciones",
+    "conditionsHint": "Qué debe cumplir el suplidor, por ejemplo enviar el certificado GFSI vigente.",
+    "reviewByLabel": "Fecha de revisión",
+    "reviewByHint": "Dentro de los próximos 12 meses.",
+    "submit": "Guardar decisión",
+    "saving": "Guardando…",
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "not_available": "Esa decisión ya no está disponible. Recarga la página.",
+      "too_short": "Escribe al menos 5 caracteres.",
+      "too_long": "Máximo 1,000 caracteres.",
+      "invalid_date": "La fecha no es válida.",
+      "date_not_future": "Debe ser una fecha futura.",
+      "date_too_far": "Debe ser dentro de los próximos 12 meses."
+    },
+    "denial": {
+      "no_permission": "Tu rol puede ver el estado del suplidor, pero no aprobarlo.",
+      "own_supplier": "Tú agregaste este suplidor y tu empresa pide que otra persona lo apruebe.",
+      "own_upload": "No puedes hacer este cambio.",
+      "last_owner": "No puedes hacer este cambio.",
+      "not_found": "No encontramos este suplidor."
+    },
+    "history": "Historial de aprobación",
+    "historyCaption": "Decisiones de aprobación",
+    "col": {
+      "date": "Fecha",
+      "decision": "Decisión",
+      "result": "Resultado",
+      "by": "Por",
+      "detail": "Detalle"
+    },
+    "complianceAt": "Cumplimiento al decidir: {percent}%"
   },
   "panel": {
     "compliance": "Cumplimiento",
@@ -410,6 +474,44 @@
       "file_empty": "El archivo está vacío.",
       "no_permission": "Tu rol no puede subir documentos.",
       "not_found": "No encontramos esta empresa."
+    }
+  },
+  "nonconformities": {
+    "title": "No conformidades",
+    "hint": "Problemas con lo que el suplidor entregó o hizo. Tres en 12 meses generan un aviso.",
+    "none": "No hay no conformidades registradas.",
+    "caption": "No conformidades del suplidor",
+    "col": {
+      "date": "Fecha",
+      "severity": "Gravedad",
+      "description": "Descripción",
+      "lot": "Lote",
+      "by": "Registrada por"
+    },
+    "severity": {
+      "minor": "Menor",
+      "major": "Mayor",
+      "critical": "Crítica"
+    },
+    "add": "Registrar no conformidad",
+    "date": "Fecha",
+    "severityLabel": "Gravedad",
+    "severityPlaceholder": "Escoge la gravedad",
+    "description": "Descripción",
+    "descriptionHint": "Qué pasó, con qué entrega o lote.",
+    "lot": "Lote (opcional)",
+    "submit": "Registrar",
+    "saving": "Guardando…",
+    "done": "No conformidad registrada.",
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "invalid_date": "La fecha no es válida.",
+      "future_date": "La fecha no puede ser futura.",
+      "too_short": "Escribe al menos 5 caracteres.",
+      "too_long": "Es demasiado largo.",
+      "invalid": "Escoge una opción válida.",
+      "no_permission": "Tu rol no puede registrar no conformidades.",
+      "not_found": "No encontramos este suplidor."
     }
   }
 }

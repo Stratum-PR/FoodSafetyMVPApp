@@ -167,7 +167,71 @@
     "approved": "Approved",
     "conditional": "Conditional",
     "pending": "Pending",
-    "suspended": "Suspended"
+    "suspended": "Suspended",
+    "title": "Approval",
+    "hint": "The system warns, but the decision is yours. Every decision is recorded with who, when and why.",
+    "last": "Last decision: {action}, by {name} on {date}.",
+    "none": "No decisions recorded yet.",
+    "conditions": "Conditions",
+    "reviewBy": "Review by {date}",
+    "warnings": {
+      "missing_documents": "{count, plural, one {# document is missing or expired.} other {# documents are missing or expired.}} A conditional approval may be more appropriate.",
+      "nonconformities": "{count} nonconformities in the last 12 months. Check whether it should stay approved; the decision is yours.",
+      "conditions_overdue": "The conditions were due for review on {date}."
+    },
+    "decide": "Change status",
+    "decision": "Decision",
+    "actions": {
+      "start_verification": "Move to verification",
+      "approve": "Approve",
+      "approve_conditional": "Approve with conditions",
+      "suspend": "Suspend",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate"
+    },
+    "actionHints": {
+      "start_verification": "Its documents are being reviewed.",
+      "approve": "It goes on the approved supplier list.",
+      "approve_conditional": "Approved while it meets the conditions, with a review date.",
+      "suspend": "Nothing is bought from it until it's approved again.",
+      "deactivate": "Nothing is bought from it anymore. Its history is kept.",
+      "reactivate": "It goes back to the stage it was in."
+    },
+    "reason": "Reason",
+    "reasonRequired": "Reason (required)",
+    "reasonHint": "It's kept in the approval history.",
+    "conditionsLabel": "Conditions",
+    "conditionsHint": "What the supplier must do, for example send its current GFSI certificate.",
+    "reviewByLabel": "Review date",
+    "reviewByHint": "Within the next 12 months.",
+    "submit": "Save decision",
+    "saving": "Saving…",
+    "errors": {
+      "required": "This field is required.",
+      "not_available": "That decision is no longer available. Reload the page.",
+      "too_short": "Write at least 5 characters.",
+      "too_long": "1,000 characters at most.",
+      "invalid_date": "The date isn't valid.",
+      "date_not_future": "Must be a future date.",
+      "date_too_far": "Must be within the next 12 months."
+    },
+    "denial": {
+      "no_permission": "Your role can see the supplier's status but can't approve it.",
+      "own_supplier": "You added this supplier and your company requires someone else to approve it.",
+      "own_upload": "You can't make this change.",
+      "last_owner": "You can't make this change.",
+      "not_found": "We couldn't find this supplier."
+    },
+    "history": "Approval history",
+    "historyCaption": "Approval decisions",
+    "col": {
+      "date": "Date",
+      "decision": "Decision",
+      "result": "Result",
+      "by": "By",
+      "detail": "Detail"
+    },
+    "complianceAt": "Compliance when decided: {percent}%"
   },
   "panel": {
     "compliance": "Compliance",
@@ -410,6 +474,44 @@
       "file_empty": "The file is empty.",
       "no_permission": "Your role can't upload documents.",
       "not_found": "We couldn't find this company."
+    }
+  },
+  "nonconformities": {
+    "title": "Nonconformities",
+    "hint": "Problems with what the supplier delivered or did. Three in 12 months trigger a warning.",
+    "none": "No nonconformities recorded.",
+    "caption": "Supplier nonconformities",
+    "col": {
+      "date": "Date",
+      "severity": "Severity",
+      "description": "Description",
+      "lot": "Lot",
+      "by": "Recorded by"
+    },
+    "severity": {
+      "minor": "Minor",
+      "major": "Major",
+      "critical": "Critical"
+    },
+    "add": "Record a nonconformity",
+    "date": "Date",
+    "severityLabel": "Severity",
+    "severityPlaceholder": "Choose the severity",
+    "description": "Description",
+    "descriptionHint": "What happened, with which delivery or lot.",
+    "lot": "Lot (optional)",
+    "submit": "Record",
+    "saving": "Saving…",
+    "done": "Nonconformity recorded.",
+    "errors": {
+      "required": "This field is required.",
+      "invalid_date": "The date isn't valid.",
+      "future_date": "The date can't be in the future.",
+      "too_short": "Write at least 5 characters.",
+      "too_long": "It's too long.",
+      "invalid": "Choose a valid option.",
+      "no_permission": "Your role can't record nonconformities.",
+      "not_found": "We couldn't find this supplier."
     }
   }
 }

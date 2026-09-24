@@ -65,7 +65,12 @@ export default async function Page({ params }: PageProps<"/[company]">) {
           <p className="mt-1 text-xs text-muted-foreground">{t("complianceHint", { met, total: compliance.total })}</p>
         </div>
         <Stat icon={Truck} label={t("activeSuppliers")} value={summary.suppliers.total} />
-        <Stat icon={ClipboardCheck} label={t("pendingApproval")} value={summary.suppliers.pendingApproval} />
+        <Stat
+          icon={ClipboardCheck}
+          label={t("pendingApproval")}
+          value={summary.suppliers.pendingApproval}
+          href={`${suppliersHref}?aprobacion=pending`}
+        />
         <Stat
           icon={FileClock}
           label={t("toReview")}

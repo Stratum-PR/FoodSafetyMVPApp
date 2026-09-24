@@ -14,6 +14,8 @@ export const PERMISSIONS = [
   /** Accept or reject an uploaded document. */
   "documents.review",
   "requests.send",
+  /** Record a supplier nonconformity (rejected lot, missing COA at receiving…). */
+  "nonconformities.record",
   "import.bulk",
   "history.view",
   /** Document catalog and company settings. */
@@ -42,6 +44,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
     "documents.upload",
     "documents.review",
     "requests.send",
+    "nonconformities.record",
     "import.bulk",
     "history.view",
     "settings.manage",
@@ -53,6 +56,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
     "documents.upload",
     "documents.review",
     "requests.send",
+    "nonconformities.record",
     "history.view",
   ]),
   // Proposes new suppliers and collects their documents; quality approves.
@@ -62,9 +66,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
     "documents.view",
     "documents.upload",
     "requests.send",
+    "nonconformities.record",
   ]),
-  // Checks the approved list at receiving and uploads per-lot documents (COA).
-  warehouse: new Set<Permission>(["suppliers.view", "documents.view", "documents.upload"]),
+  // Checks the approved list at receiving, uploads per-lot documents (COA) and records problems.
+  warehouse: new Set<Permission>(["suppliers.view", "documents.view", "documents.upload", "nonconformities.record"]),
   viewer: new Set<Permission>(["suppliers.view", "documents.view"]),
 };
 

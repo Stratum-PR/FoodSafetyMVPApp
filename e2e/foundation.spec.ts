@@ -371,3 +371,64 @@ test("a read-only role can't upload", async ({ page, context, baseURL }) => {
   await page.goto(`${COMPANY}/documentos/subir`);
   await expect(page.getByText("Tu rol no puede subir documentos")).toBeVisible();
 });
+
+/* Supplier approval. Uses its own company; desktop and phone take different suppliers. */
+const APPROVAL_COMPANY = "/dulces-la-palma";
+
+async function openSupplier(page: Page, query: string, isMobile: boolean) {
+  await page.goto(`${APPROVAL_COMPANY}/suplidores?${query}`);
+  const links = page
+    .locator("main :is(tbody tr, ul[aria-label] > li)")
+    .filter({ visible: true })
+    .locator("a[href*='/suplidores/p-']");
+  const count = await links.count();
+  await links.nth(isMobile ? count - 1 : 0).click();
+  await expect(page.getByRole("heading", { level: 2, name: "Aprobación" })).toBeVisible();
+}
+
+test("a pending supplier is approved with conditions, and the decision is recorded", async ({ page, isMobile }) => {
+  await openSupplier(page, "aprobacion=pending", isMobile);
+  await page.getByRole("radio", { name: /Aprobar con condiciones/ }).check();
+  await page.getByRole("button", { name: "Guardar decisión" }).click();
+  await expect(page.getByText("Este campo es obligatorio.").first()).toBeVisible();
+
+  await page.getByLabel("Condiciones", { exact: true }).fill("Enviar el certificado GFSI vigente.");
+  await page.locator("#ap-reviewBy").fill("2026-12-15");
+  await page.getByLabel("Motivo", { exact: true }).fill("Falta el certificado del año en curso.");
+  await page.getByRole("button", { name: "Guardar decisión" }).click();
+
+  await expect(page.getByText(/Última decisión: Aprobar con condiciones/)).toBeVisible();
+  await expect(page.getByText("Enviar el certificado GFSI vigente.").filter({ visible: true }).first()).toBeVisible();
+  await expectNoSeriousA11yIssues(page);
+});
+
+test("the suspended supplier shows why, and its nonconformities", async ({ page }) => {
+  await openSupplier(page, "aprobacion=suspended", false);
+  await expect(
+    page
+      .getByText(/Tres no conformidades en cinco meses/)
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "No conformidades" })).toBeVisible();
+  // Its three nonconformities in five months trigger the warning.
+  await expect(page.getByText(/3 no conformidades en los últimos 12 meses/)).toBeVisible();
+});
+
+test("recording a nonconformity adds it to the supplier", async ({ page, isMobile }) => {
+  await openSupplier(page, "aprobacion=approved", isMobile);
+  await page.getByText("Registrar no conformidad").click();
+  const description = `Entrega con sello roto (${isMobile ? "teléfono" : "computadora"}).`;
+  await page.getByLabel("Gravedad").selectOption("major");
+  await page.getByLabel("Descripción").fill(description);
+  await page.getByRole("button", { name: "Registrar", exact: true }).click();
+  await expect(page.getByText(description).filter({ visible: true }).first()).toBeVisible();
+});
+
+test("a read-only role sees the approval but can't decide", async ({ page, context, baseURL, isMobile }) => {
+  await context.addCookies([{ name: "preview_role", value: "viewer", url: baseURL! }]);
+  await openSupplier(page, "aprobacion=approved", isMobile);
+  await expect(page.getByText("Tu rol puede ver el estado del suplidor, pero no aprobarlo.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Guardar decisión" })).toHaveCount(0);
+  await expect(page.getByText("Registrar no conformidad")).toHaveCount(0);
+});
