@@ -138,6 +138,7 @@ export default async function UiReviewPage() {
         <div className="flex flex-wrap gap-2">
           <StatusPill status="current" />
           <StatusPill status="expiring" />
+          <StatusPill status="expired" />
           <StatusPill status="missing" />
         </div>
       </Section>

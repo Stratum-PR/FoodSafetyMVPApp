@@ -73,8 +73,28 @@ test("an unknown company shows a friendly not-found page", async ({ page }) => {
 test("the component review page renders every piece accessibly", async ({ page }) => {
   await page.goto("/dev/ui");
   await expect(page.getByRole("heading", { level: 1, name: "Revisión de componentes" })).toBeVisible();
-  for (const label of ["Vigente", "Por vencer", "Falta"]) {
+  for (const label of ["Vigente", "Por vencer", "Vencido", "Falta"]) {
     await expect(page.getByText(label, { exact: true }).first()).toBeVisible();
   }
+  await expectNoSeriousA11yIssues(page);
+});
+
+test("previewing as another role changes what the menu shows", async ({ page, isMobile }) => {
+  await page.goto(COMPANY);
+  await page.getByRole("button", { name: "Menú de usuario" }).click();
+  await expect(page.getByTestId("current-role")).toHaveText("Gerente de calidad");
+  await page.getByRole("menuitemradio", { name: "Solo lectura" }).click();
+  await expect(page.getByTestId("current-role")).toHaveText("Solo lectura");
+  await page.keyboard.press("Escape");
+
+  await openNav(page, isMobile);
+  const nav = page.getByRole("navigation", { name: "Navegación principal" }).last();
+  await expect(nav.getByRole("link", { name: "Suplidores" })).toBeVisible();
+  for (const hidden of ["Solicitudes", "Historial", "Ajustes"]) {
+    await expect(nav.getByRole("link", { name: hidden })).toHaveCount(0);
+  }
+
+  await page.goto(`${COMPANY}/ajustes`);
+  await expect(page.getByText("Tu rol no tiene acceso a esta sección")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
 });

@@ -4,18 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
+import type { Role } from "@/domain/permissions";
+import { can } from "@/domain/permissions";
 import { cn } from "@/lib/utils";
 
 import { NAV_ITEMS, navHref } from "./nav-items";
 
-/** The section links, used in the desktop sidebar and the phone menu. */
-export function NavLinks({ company, onNavigate }: { company: string; onNavigate?: () => void }) {
+/** The section links the role can open, used in the desktop sidebar and the phone menu. */
+export function NavLinks({ company, role, onNavigate }: { company: string; role: Role; onNavigate?: () => void }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
   return (
     <ul className="grid gap-1">
-      {NAV_ITEMS.map(({ key, segment, icon: Icon }) => {
+      {NAV_ITEMS.filter((item) => can(role, item.permission)).map(({ key, segment, icon: Icon }) => {
         const href = navHref(company, segment);
         const active = segment ? pathname === href || pathname.startsWith(`${href}/`) : pathname === href;
         return (

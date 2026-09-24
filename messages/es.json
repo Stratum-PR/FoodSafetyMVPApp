@@ -23,9 +23,10 @@
     "english": "English",
     "userMenu": "Menú de usuario",
     "sampleUser": "Usuario de ejemplo",
-    "sampleRole": "Gerente de calidad",
     "signOut": "Cerrar sesión",
-    "signOutSoon": "El inicio de sesión llega con la base de datos"
+    "signOutSoon": "El inicio de sesión llega con la base de datos",
+    "previewAs": "Ver como",
+    "previewHint": "Vista previa con datos de ejemplo: cambia el rol para ver lo que ve cada usuario."
   },
   "sample": {
     "badge": "Datos de ejemplo",
@@ -34,7 +35,8 @@
   "status": {
     "current": "Vigente",
     "expiring": "Por vencer",
-    "missing": "Falta"
+    "missing": "Falta",
+    "expired": "Vencido"
   },
   "pages": {
     "panel": {
@@ -108,5 +110,18 @@
     "colDocument": "Documento",
     "colStatus": "Estado",
     "colExpires": "Vence"
+  },
+  "roles": {
+    "owner": "Dueño",
+    "admin": "Administrador",
+    "quality_manager": "Gerente de calidad",
+    "staff": "Personal de calidad",
+    "purchasing": "Compras",
+    "warehouse": "Almacén",
+    "viewer": "Solo lectura"
+  },
+  "noAccess": {
+    "title": "Tu rol no tiene acceso a esta sección",
+    "body": "Si necesitas entrar, pídele a un administrador de tu empresa que cambie tu rol."
   }
 }

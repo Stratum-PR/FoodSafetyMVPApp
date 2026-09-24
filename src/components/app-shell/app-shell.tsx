@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { SampleDataBadge } from "@/components/sample-data-badge";
 import type { Company } from "@/domain/company";
+import type { Role } from "@/domain/permissions";
 
 import { CompanySwitcher } from "./company-switcher";
 import { LanguageSwitch } from "./language-switch";
@@ -17,11 +18,13 @@ export function AppShell({
   company,
   companies,
   sampleData,
+  role,
   children,
 }: {
   company: Company;
   companies: Company[];
   sampleData: boolean;
+  role: Role;
   children: ReactNode;
 }) {
   const t = useTranslations("nav");
@@ -40,13 +43,13 @@ export function AppShell({
           />
         </Link>
         <nav aria-label={t("label")} className="mt-8">
-          <NavLinks company={company.slug} />
+          <NavLinks company={company.slug} role={role} />
         </nav>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-1.5 border-b bg-background/90 px-3 backdrop-blur sm:gap-2 sm:px-6">
-          <MobileNav company={company.slug} />
+          <MobileNav company={company.slug} role={role} />
           <CompanySwitcher current={company} companies={companies} />
           <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
             {sampleData ? (
@@ -55,7 +58,7 @@ export function AppShell({
               </span>
             ) : null}
             <LanguageSwitch />
-            <UserMenu />
+            <UserMenu role={role} canPreview={sampleData} />
           </div>
         </header>
 
