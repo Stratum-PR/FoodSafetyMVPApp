@@ -324,7 +324,31 @@
       "rejected": "Rechazado",
       "superseded": "Reemplazado"
     },
-    "inReview": "Hay uno por revisar"
+    "inReview": "Hay uno por revisar",
+    "matrix": {
+      "title": "Documentos por material",
+      "hint": "Cada material que se le compra y el estado de sus documentos. Toca una celda para ver el documento o subirlo.",
+      "views": "Vista de la tabla",
+      "byMaterial": "Por ingrediente",
+      "byDocument": "Por documento",
+      "incompleteOnly": "Solo incompletos",
+      "showAll": "Mostrar todos",
+      "captionMaterial": "Materiales en filas y documentos en columnas",
+      "captionDocument": "Documentos en filas y materiales en columnas",
+      "material": "Material",
+      "document": "Documento",
+      "pending": "Pendientes",
+      "missingIn": "Falta en",
+      "of": "{open} de {total}",
+      "complete": "Completo",
+      "allComplete": "Todos los documentos de estos materiales están al día.",
+      "none": "Este suplidor no tiene materiales en compra activa.",
+      "notApplicable": "No aplica",
+      "cellLabel": "{material} · {document}: {status}",
+      "upload": "subir",
+      "legend": "Leyenda",
+      "inactive": "{count, plural, one {# material ofrecido} other {# materiales ofrecidos}} sin compra activa: no se le exigen documentos hasta la primera orden."
+    }
   },
   "lifecycle": {
     "onboarding": "Incorporación",

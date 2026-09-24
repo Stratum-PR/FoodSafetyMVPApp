@@ -12,6 +12,7 @@ import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { StatusPill } from "@/components/status-pill";
 import { ApprovalBadge } from "@/components/suppliers/approval-badge";
 import { ApprovalSection } from "@/components/suppliers/approval-section";
+import { SupplierMatrix } from "@/components/suppliers/supplier-matrix";
 import { ComplianceGaps } from "@/components/suppliers/compliance-gaps";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { RequirementResult, RequirementStatus } from "@/domain/status";
@@ -40,8 +41,8 @@ const SEGMENT: Record<RequirementStatus, string> = {
   missing: "bg-status-missing/40",
 };
 
-export default async function Page({ params }: Props) {
-  const { company, supplier } = await params;
+export default async function Page({ params, searchParams }: Props) {
+  const [{ company, supplier }, query] = await Promise.all([params, searchParams]);
   const ctx = await getRequestContext(company);
   const [detail, t, tType, tLifecycle, tUpload, format, locale] = await Promise.all([
     getSupplier(ctx, decodeURIComponent(supplier)),
@@ -221,6 +222,17 @@ export default async function Page({ params }: Props) {
           <p className="text-sm text-muted-foreground">{t("notEvaluated")}</p>
         )}
       </Section>
+
+      <SupplierMatrix
+        company={company}
+        partyId={party.id}
+        sources={detail.sources}
+        view={query.vista === "documento" ? "documento" : "ingrediente"}
+        incompleteOnly={query.incompletos === "1"}
+        canUpload={canUpload}
+        pageHref={supplierHref(company, party.id)}
+        lang={lang}
+      />
 
       <Section title={t("materials")} hint={t("materialsHint")}>
         {detail.sources.length ? (
