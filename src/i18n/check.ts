@@ -20,7 +20,8 @@ function flatten(messages: Messages, prefix = ""): Map<string, string> {
   return out;
 }
 
-const placeholders = (text: string) => [...text.matchAll(/\{(\w+)/g)].map((m) => m[1]).sort();
+// An argument is "{name}" or "{name, plural, …}". Plural branches like "one {# día}" are text, not arguments.
+const placeholders = (text: string) => [...new Set([...text.matchAll(/\{\s*(\w+)\s*[,}]/g)].map((m) => m[1]))].sort();
 
 export function compareMessages(
   source: Messages,
