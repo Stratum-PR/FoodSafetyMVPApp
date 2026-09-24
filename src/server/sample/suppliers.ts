@@ -1,5 +1,7 @@
+import type { ApprovalRecord } from "@/domain/approval";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import { addDays, addMonths, type IsoDate } from "@/domain/dates";
+import type { Nonconformity, Severity } from "@/domain/nonconformity";
 import { allRequirements, type SupplierData } from "@/domain/requirements";
 import type {
   ApprovedSource,
@@ -32,7 +34,11 @@ export const SAMPLE_USERS: SampleUser[] = [
   { id: "u-yaritza", name: "Yaritza Pagán" },
 ];
 
-export type SampleSupplierData = SupplierData & { documents: SupplierDocument[] };
+export type SampleSupplierData = SupplierData & {
+  documents: SupplierDocument[];
+  approvals: ApprovalRecord[];
+  nonconformities: Nonconformity[];
+};
 
 type Size = { manufacturers: number; distributors: number; ingredients: number; packaging: number };
 
@@ -412,5 +418,105 @@ export function generateSampleSuppliers(companySlug: string, today: IsoDate): Sa
     }
   });
 
-  return { parties, materials, sources, documents };
+  const { approvals, nonconformities } = sampleApprovalHistory(parties, today, uploaders);
+  return { parties, materials, sources, documents, approvals, nonconformities };
+}
+
+const NONCONFORMITY_TEXTS: { severity: Severity; description: string; lot?: boolean }[] = [
+  { severity: "major", description: "Lote recibido sin certificado de análisis.", lot: true },
+  { severity: "minor", description: "Etiqueta del empaque sin número de lote legible.", lot: true },
+  { severity: "major", description: "Temperatura del camión fuera de rango al recibir (9 °C).", lot: true },
+  { severity: "critical", description: "Material extraño (plástico) encontrado en el producto.", lot: true },
+  { severity: "minor", description: "Entrega dos días tarde sin aviso previo." },
+];
+
+/**
+ * Approval history and nonconformities for the sample, derived from the suppliers' states
+ * (no random calls, so the rest of the data stays the same): every approved supplier has its
+ * approval on record; the conditional one is past its review date; the suspended one has the
+ * nonconformities that led to it; and one approved supplier has just reached three.
+ */
+function sampleApprovalHistory(
+  parties: Party[],
+  today: IsoDate,
+  users: string[],
+): { approvals: ApprovalRecord[]; nonconformities: Nonconformity[] } {
+  const approvals: ApprovalRecord[] = [];
+  const nonconformities: Nonconformity[] = [];
+  const reviewer = (i: number) => users[(i + 1) % users.length];
+
+  const addNonconformities = (party: Party, i: number, dates: IsoDate[]) =>
+    dates.forEach((date, k) => {
+      const text = NONCONFORMITY_TEXTS[(i + k) % NONCONFORMITY_TEXTS.length];
+      nonconformities.push({
+        id: `nc-${nonconformities.length + 1}`,
+        partyId: party.id,
+        date,
+        severity: text.severity,
+        description: text.description,
+        lotCode: text.lot ? `L${String(40000 + i * 97 + k * 13)}` : undefined,
+        recordedBy: users[(i + k) % users.length],
+        recordedOn: date,
+      });
+    });
+
+  let warned = false;
+  let noted = false;
+  parties.forEach((party, i) => {
+    if (party.approval === "pending") return;
+    const approvedOn = addMonths(today, -(6 + (i % 18)));
+    approvals.push({
+      id: `ap-${approvals.length + 1}`,
+      partyId: party.id,
+      on: approvedOn,
+      actorId: reviewer(i),
+      action: "approve",
+      from: { approval: "pending", lifecycle: "verification" },
+      to: { approval: "approved", lifecycle: "monitoring" },
+    });
+
+    if (party.approval === "conditional") {
+      const reviewBy = addDays(today, -3);
+      party.conditions = "Enviar el certificado GFSI vigente y la carta de garantía firmada.";
+      party.conditionsReviewBy = reviewBy;
+      approvals.push({
+        id: `ap-${approvals.length + 1}`,
+        partyId: party.id,
+        on: addDays(today, -45),
+        actorId: reviewer(i + 1),
+        action: "approve_conditional",
+        from: { approval: "approved", lifecycle: "monitoring" },
+        to: { approval: "conditional", lifecycle: "monitoring" },
+        reason: "El certificado GFSI venció y la renovación está en proceso.",
+        conditions: party.conditions,
+        reviewBy,
+      });
+    }
+
+    if (party.approval === "suspended") {
+      addNonconformities(party, i, [addDays(today, -150), addDays(today, -90), addDays(today, -35)]);
+      approvals.push({
+        id: `ap-${approvals.length + 1}`,
+        partyId: party.id,
+        on: addDays(today, -30),
+        actorId: reviewer(i + 1),
+        action: "suspend",
+        from: { approval: "approved", lifecycle: "monitoring" },
+        to: { approval: "suspended", lifecycle: "suspended" },
+        reason: "Tres no conformidades en cinco meses; se suspende hasta recibir su plan de acción.",
+      });
+    }
+
+    // One approved supplier has just reached three nonconformities (the warning); another has one.
+    if (party.approval === "approved" && party.lifecycle === "monitoring" && party.type !== "distributor") {
+      if (!warned) {
+        warned = true;
+        addNonconformities(party, i, [addDays(today, -200), addDays(today, -60), addDays(today, -6)]);
+      } else if (!noted) {
+        noted = true;
+        addNonconformities(party, i, [addDays(today, -120)]);
+      }
+    }
+  });
+  return { approvals, nonconformities };
 }

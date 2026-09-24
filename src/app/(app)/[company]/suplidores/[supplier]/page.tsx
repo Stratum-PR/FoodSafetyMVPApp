@@ -11,6 +11,7 @@ import { DocumentStateBadge } from "@/components/documents/document-state-badge"
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { StatusPill } from "@/components/status-pill";
 import { ApprovalBadge } from "@/components/suppliers/approval-badge";
+import { ApprovalSection } from "@/components/suppliers/approval-section";
 import { ComplianceGaps } from "@/components/suppliers/compliance-gaps";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { RequirementResult, RequirementStatus } from "@/domain/status";
@@ -205,6 +206,8 @@ export default async function Page({ params }: Props) {
           <Fact label={t("facts.addedBy")}>{detail.createdByName}</Fact>
         </dl>
       </div>
+
+      <ApprovalSection ctx={ctx} partyId={party.id} />
 
       <Section title={t("partyDocs")} hint={t("partyDocsHint")}>
         {detail.partyRequirements.length ? (
