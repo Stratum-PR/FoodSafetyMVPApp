@@ -59,6 +59,15 @@ export default async function Page({ params }: Props) {
   );
   const typeName = (code: string) => findType(DEFAULT_CATALOG, code)?.name[lang] ?? code;
   const requirementName = (r: RequirementResult) => r.requirement.anyOf.map(typeName).join(` ${t("or")} `);
+  // Opens the document that currently decides the requirement, where its history is.
+  const requirementLink = (r: RequirementResult) =>
+    r.document ? (
+      <Link href={documentHref(company, r.document.id)} className="text-primary hover:underline">
+        {requirementName(r)}
+      </Link>
+    ) : (
+      requirementName(r)
+    );
   // A requirement that isn't met may already have a document waiting for review: say so,
   // so nobody asks the supplier again for something already received.
   const awaitingReview = (r: RequirementResult) =>
@@ -81,7 +90,7 @@ export default async function Page({ params }: Props) {
     !r.document ? t("none") : r.expiresOn ? date(r.expiresOn) : t("neverExpires");
 
   const requirementColumns: Column<RequirementResult>[] = [
-    { key: "requirement", header: t("col.requirement"), primary: true, cell: requirementName },
+    { key: "requirement", header: t("col.requirement"), primary: true, cell: requirementLink },
     { key: "reason", header: t("col.reason"), cell: (r) => t(`reason.${r.requirement.reason}`) },
     { key: "status", header: t("col.status"), cell: status },
     { key: "expires", header: t("col.expires"), cell: expires, className: "tabular-nums" },
@@ -193,7 +202,7 @@ export default async function Page({ params }: Props) {
                         key={r.requirement.key}
                         className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
                       >
-                        <span className="text-sm">{requirementName(r)}</span>
+                        <span className="text-sm">{requirementLink(r)}</span>
                         <span className="flex items-center gap-2 text-xs text-muted-foreground tabular-nums">
                           {r.document ? expires(r) : null}
                           {status(r)}

@@ -20,10 +20,12 @@ export type DocumentRow = {
   /** Material name for material-level documents; null for the supplier's own documents. */
   materialName: string | null;
   lotCode?: string;
+  issuedOn?: IsoDate;
   receivedOn: IsoDate;
   expires: IsoDate | null;
   uploadedBy: string;
   uploadedByName: string;
+  reviewedByName?: string;
 };
 
 export function toDocumentRows(data: SampleSupplierData, users: SampleUser[]): DocumentRow[] {
@@ -43,10 +45,12 @@ export function toDocumentRows(data: SampleSupplierData, users: SampleUser[]): D
       partyName: parties.get(partyId) ?? "",
       materialName: source ? (materials.get(source.materialId) ?? null) : null,
       lotCode: d.lotCode,
+      issuedOn: d.issuedOn,
       receivedOn: d.receivedOn,
       expires: expirationOf(d, findType(DEFAULT_CATALOG, d.typeCode)),
       uploadedBy: d.uploadedBy,
       uploadedByName: userName(d.uploadedBy),
+      reviewedByName: d.reviewedBy ? userName(d.reviewedBy) : undefined,
     };
   });
 }

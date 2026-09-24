@@ -346,6 +346,21 @@
       "not_found": "Este documento ya no existe.",
       "invalid": "No pudimos procesar la solicitud. Inténtalo otra vez."
     },
-    "supplierItself": "El suplidor"
+    "supplierItself": "El suplidor",
+    "history": {
+      "title": "Historial de este documento",
+      "hint": "Todas las versiones recibidas. Al aceptar una nueva, la anterior queda como reemplazada; ninguna se borra.",
+      "caption": "Versiones del documento",
+      "active": "Activa",
+      "viewing": "Estás viendo esta",
+      "issued": "Emitido",
+      "received": "Recibido",
+      "expires": "Vence",
+      "state": "Estado",
+      "uploadedBy": "Subido por",
+      "reviewedBy": "Revisado por",
+      "version": "Versión",
+      "only": "Es la única versión recibida."
+    }
   }
 }

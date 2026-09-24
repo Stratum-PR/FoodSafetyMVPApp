@@ -346,6 +346,21 @@
       "not_found": "This document no longer exists.",
       "invalid": "We couldn't process the request. Please try again."
     },
-    "supplierItself": "The supplier"
+    "supplierItself": "The supplier",
+    "history": {
+      "title": "History of this document",
+      "hint": "Every version received. Accepting a new one marks the previous one as superseded; none is ever deleted.",
+      "caption": "Document versions",
+      "active": "Active",
+      "viewing": "You're viewing this one",
+      "issued": "Issued",
+      "received": "Received",
+      "expires": "Expires",
+      "state": "Status",
+      "uploadedBy": "Uploaded by",
+      "reviewedBy": "Reviewed by",
+      "version": "Version",
+      "only": "This is the only version received."
+    }
   }
 }
