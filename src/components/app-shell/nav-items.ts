@@ -17,3 +17,7 @@ export const NAV_ITEMS: { key: NavKey; segment: string; icon: LucideIcon; permis
 export function navHref(company: string, segment: string): string {
   return segment ? `/${company}/${segment}` : `/${company}`;
 }
+
+export function supplierHref(company: string, supplierId: string): string {
+  return `/${company}/suplidores/${encodeURIComponent(supplierId)}`;
+}

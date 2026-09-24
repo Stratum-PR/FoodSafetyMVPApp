@@ -9,7 +9,7 @@ import type { ChangeEvent } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { APPROVAL_FILTERS, type SupplierFilters, TYPE_FILTERS } from "@/server/supplier-filters";
+import { APPROVAL_FILTERS, SORT_KEYS, type SupplierFilters, sortParam, TYPE_FILTERS } from "@/server/supplier-filters";
 
 const SELECT =
   "h-8 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
@@ -19,10 +19,13 @@ export function SupplierFiltersForm({
   action,
   filters,
   filtered,
+  clearHref,
 }: {
   action: string;
   filters: SupplierFilters;
   filtered: boolean;
+  /** The list without filters, keeping the sort. */
+  clearHref: string;
 }) {
   const t = useTranslations("suppliers");
   const tType = useTranslations("partyType");
@@ -71,6 +74,27 @@ export function SupplierFiltersForm({
           ))}
         </select>
       </div>
+      {/* Phones have no column headers to click. On computers this stays hidden but is still
+          submitted, so changing a filter keeps the current sort. */}
+      <div className="grid grid-cols-[1fr_auto] gap-3 sm:col-span-3 md:hidden">
+        <div className="grid gap-1.5">
+          <Label htmlFor="f-sort">{t("sortBy")}</Label>
+          <select id="f-sort" name="orden" defaultValue={sortParam(filters.sort)} onChange={submit} className={SELECT}>
+            {SORT_KEYS.map((k) => (
+              <option key={k} value={sortParam(k)}>
+                {t(`col.${k}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="f-dir">{t("sortDir")}</Label>
+          <select id="f-dir" name="dir" defaultValue={filters.dir} onChange={submit} className={SELECT}>
+            <option value="asc">{t("asc")}</option>
+            <option value="desc">{t("desc")}</option>
+          </select>
+        </div>
+      </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-3">
         <label className="inline-flex items-center gap-2 text-sm">
           <input
@@ -85,7 +109,7 @@ export function SupplierFiltersForm({
         </label>
         <div className="ml-auto flex gap-2">
           {filtered ? (
-            <Link href={action} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            <Link href={clearHref} className={buttonVariants({ variant: "ghost", size: "sm" })}>
               {t("clear")}
             </Link>
           ) : null}

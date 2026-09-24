@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
-import { navHref } from "@/components/app-shell/nav-items";
+import { navHref, supplierHref } from "@/components/app-shell/nav-items";
 import { ComplianceBar, complianceTone } from "@/components/compliance-bar";
 import { PageHeader } from "@/components/page-header";
 import { sectionText } from "@/components/section-placeholder";
@@ -89,7 +89,11 @@ export default async function Page({ params }: PageProps<"/[company]">) {
                       className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5"
                     >
                       <div className="min-w-48 flex-1">
-                        <p className="truncate font-semibold">{a.partyName}</p>
+                        <p className="truncate font-semibold">
+                          <Link href={supplierHref(company, a.partyId)} className="hover:text-primary hover:underline">
+                            {a.partyName}
+                          </Link>
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           {findType(DEFAULT_CATALOG, a.typeCode)?.name[lang] ?? a.typeCode}
                         </p>
@@ -142,7 +146,12 @@ export default async function Page({ params }: PageProps<"/[company]">) {
             <ul className="grid gap-2.5">
               {lowest.map((s) => (
                 <li key={s.id} className="flex items-center justify-between gap-3">
-                  <span className="min-w-0 truncate text-sm font-medium">{s.name}</span>
+                  <Link
+                    href={supplierHref(company, s.id)}
+                    className="min-w-0 truncate text-sm font-medium hover:text-primary hover:underline"
+                  >
+                    {s.name}
+                  </Link>
                   <ComplianceBar percent={s.compliance.percent} className="shrink-0" />
                 </li>
               ))}
