@@ -1,10 +1,11 @@
 import type { IsoDate } from "./dates";
-import { type Actor, checkReviewDocument, type Denial } from "./permissions";
+import { type Actor, checkReviewDocument, DEFAULT_REVIEW_POLICY, type Denial, type ReviewPolicy } from "./permissions";
 import type { SupplierDocument } from "./suppliers";
 
 /*
  * Accepting or rejecting an uploaded document. Rules:
- * - Only roles with documents.review, and never the person who uploaded it.
+ * - Only roles with documents.review. The uploader may review their own document unless the
+ *   company requires a second person (ReviewPolicy; off by default, see permissions.ts).
  * - Only documents waiting for review can be decided; a decision is final (upload a new one).
  * - A rejection needs a reason, so the supplier knows what to fix.
  * - Accepting a document replaces ("supersedes") the older accepted document of the same type
@@ -28,9 +29,13 @@ function sameSubject(a: SupplierDocument, b: SupplierDocument): boolean {
 }
 
 /** Whether the actor may decide this document at all (for showing or hiding the buttons). */
-export function checkCanReview(actor: Actor, doc: SupplierDocument): ReviewDenial | null {
+export function checkCanReview(
+  actor: Actor,
+  doc: SupplierDocument,
+  policy: ReviewPolicy = DEFAULT_REVIEW_POLICY,
+): ReviewDenial | null {
   if (doc.state !== "pending_review") return "not_pending";
-  return checkReviewDocument(actor, doc);
+  return checkReviewDocument(actor, doc, policy);
 }
 
 /**
@@ -45,8 +50,9 @@ export function reviewDocument(
   reason: string,
   today: IsoDate,
   perLot: boolean,
+  policy: ReviewPolicy = DEFAULT_REVIEW_POLICY,
 ): ReviewResult {
-  const denial = checkCanReview(actor, doc);
+  const denial = checkCanReview(actor, doc, policy);
   if (denial) return { ok: false, denial };
 
   const trimmed = reason.trim();

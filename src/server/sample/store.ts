@@ -1,5 +1,6 @@
 import type { ActivityEvent } from "@/domain/activity";
 import type { IsoDate } from "@/domain/dates";
+import { DEFAULT_REVIEW_POLICY, type ReviewPolicy } from "@/domain/permissions";
 
 import { generateSampleSuppliers, type SampleSupplierData } from "./suppliers";
 
@@ -10,7 +11,11 @@ import { generateSampleSuppliers, type SampleSupplierData } from "./suppliers";
  * Kept on globalThis so development hot-reloads don't wipe it.
  */
 
-export type SampleStore = SampleSupplierData & { events: ActivityEvent[] };
+export type SampleStore = SampleSupplierData & {
+  events: ActivityEvent[];
+  /** The company's separation-of-duties choice (Ajustes). Off by default. */
+  policy: ReviewPolicy;
+};
 
 const globalStores = globalThis as unknown as { __stratumSampleStores?: Map<string, SampleStore> };
 const stores = (globalStores.__stratumSampleStores ??= new Map<string, SampleStore>());
@@ -21,7 +26,7 @@ export function getSampleStore(companySlug: string, today: IsoDate): SampleStore
   if (!store) {
     // A new day starts from fresh data; drop the company's older days.
     for (const k of stores.keys()) if (k.startsWith(`${companySlug}|`)) stores.delete(k);
-    store = { ...generateSampleSuppliers(companySlug, today), events: [] };
+    store = { ...generateSampleSuppliers(companySlug, today), events: [], policy: { ...DEFAULT_REVIEW_POLICY } };
     stores.set(key, store);
   }
   return store;

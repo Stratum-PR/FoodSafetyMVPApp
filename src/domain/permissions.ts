@@ -87,26 +87,40 @@ export type Actor = { userId: string; role: Role };
 
 export type Denial = "no_permission" | "own_upload" | "own_supplier" | "last_owner";
 
-/** Nobody accepts or rejects a document they uploaded. */
-export function checkReviewDocument(actor: Actor, doc: { uploadedBy: string }): Denial | null {
+/**
+ * A company's choice about separation of duties. No standard requires it (FSMA 21 CFR 117
+ * subpart G, FSVP, SQF 2.4.4 and GFSI ask for an approved-supplier program and its records,
+ * not for two different people), and small teams often have one person doing everything.
+ * So it's off by default; larger companies can require a second person in Ajustes.
+ * Every decision records who made it either way.
+ */
+export type ReviewPolicy = {
+  /** When on, nobody reviews a document they uploaded or approves a supplier they added. */
+  requireSecondPerson: boolean;
+};
+
+export const DEFAULT_REVIEW_POLICY: ReviewPolicy = { requireSecondPerson: false };
+
+/** Who may accept or reject a document. */
+export function checkReviewDocument(
+  actor: Actor,
+  doc: { uploadedBy: string },
+  policy: ReviewPolicy = DEFAULT_REVIEW_POLICY,
+): Denial | null {
   if (!can(actor.role, "documents.review")) return "no_permission";
-  if (doc.uploadedBy === actor.userId) return "own_upload";
+  if (policy.requireSecondPerson && doc.uploadedBy === actor.userId) return "own_upload";
   return null;
 }
 
-/**
- * Nobody approves a supplier they added. Exception: a company with a single Owner can
- * turn on self-approval for that Owner (small teams); every such approval is logged.
- */
+/** Who may approve, condition, suspend or reinstate a supplier. */
 export function checkApproveParty(
   actor: Actor,
   party: { createdBy: string },
-  company: { ownerCount: number; allowSoleOwnerSelfApproval: boolean },
+  policy: ReviewPolicy = DEFAULT_REVIEW_POLICY,
 ): Denial | null {
   if (!can(actor.role, "suppliers.approve")) return "no_permission";
-  if (party.createdBy !== actor.userId) return null;
-  const soleOwner = actor.role === "owner" && company.ownerCount === 1;
-  return soleOwner && company.allowSoleOwnerSelfApproval ? null : "own_supplier";
+  if (policy.requireSecondPerson && party.createdBy === actor.userId) return "own_supplier";
+  return null;
 }
 
 export type Member = { userId: string; role: Role; active: boolean };
