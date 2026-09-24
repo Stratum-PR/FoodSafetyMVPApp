@@ -70,6 +70,7 @@ export default async function Page({ params }: PageProps<"/[company]">) {
           icon={FileClock}
           label={t("toReview")}
           value={summary.documentsToReview}
+          href={navHref(company, "documentos")}
           className="col-span-2 lg:col-span-1"
         />
       </div>
@@ -180,13 +181,34 @@ function Stat({
   icon: Icon,
   label,
   value,
+  href,
   className,
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
+  /** Makes the whole tile a link. */
+  href?: string;
   className?: string;
 }) {
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "group rounded-xl border bg-card p-4 transition-colors hover:border-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+          className,
+        )}
+      >
+        <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-primary">
+          <Icon aria-hidden className="size-4" />
+          {label}
+          <ArrowRight aria-hidden className="ml-auto size-4" />
+        </p>
+        <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
+      </Link>
+    );
+  }
   return (
     <div className={cn("rounded-xl border bg-card p-4", className)}>
       <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">

@@ -21,3 +21,7 @@ export function navHref(company: string, segment: string): string {
 export function supplierHref(company: string, supplierId: string): string {
   return `/${company}/suplidores/${encodeURIComponent(supplierId)}`;
 }
+
+export function documentHref(company: string, documentId: string): string {
+  return `/${company}/documentos/${encodeURIComponent(documentId)}`;
+}

@@ -74,6 +74,11 @@ export type SupplierDocument = {
   /** For per-lot documents such as a COA. */
   lotCode?: string;
   uploadedBy: string;
+  /** Set when the document is accepted or rejected. */
+  reviewedBy?: string;
+  reviewedOn?: IsoDate;
+  /** Required when rejected; shown to whoever uploads the replacement. */
+  rejectionReason?: string;
 };
 
 /** Manufacturers outside the US (Puerto Rico counts as US) fall under FSVP (21 CFR 1 subpart L). */

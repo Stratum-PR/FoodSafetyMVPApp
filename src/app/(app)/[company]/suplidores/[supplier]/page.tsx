@@ -5,15 +5,15 @@ import { notFound } from "next/navigation";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 
-import { navHref, supplierHref } from "@/components/app-shell/nav-items";
+import { documentHref, navHref, supplierHref } from "@/components/app-shell/nav-items";
 import { complianceTone } from "@/components/compliance-bar";
+import { DocumentStateBadge } from "@/components/documents/document-state-badge";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { StatusPill } from "@/components/status-pill";
 import { ApprovalBadge } from "@/components/suppliers/approval-badge";
 import { ComplianceGaps } from "@/components/suppliers/compliance-gaps";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import type { RequirementResult, RequirementStatus } from "@/domain/status";
-import type { DocumentState } from "@/domain/suppliers";
 import { isLocale, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
@@ -35,12 +35,6 @@ const SEGMENT: Record<RequirementStatus, string> = {
   expiring: "bg-status-expiring",
   expired: "bg-status-missing",
   missing: "bg-status-missing/40",
-};
-const DOC_STATE_TONE: Record<DocumentState, string> = {
-  pending_review: "bg-secondary text-secondary-foreground",
-  accepted: "bg-status-current-bg text-status-current",
-  rejected: "bg-status-missing-bg text-status-missing",
-  superseded: "bg-muted text-muted-foreground",
 };
 
 export default async function Page({ params }: Props) {
@@ -100,7 +94,9 @@ export default async function Page({ params }: Props) {
       primary: true,
       cell: (d) => (
         <span>
-          {typeName(d.typeCode)}
+          <Link href={documentHref(company, d.id)} className="font-semibold text-primary hover:underline">
+            {typeName(d.typeCode)}
+          </Link>
           {d.lotCode ? (
             <span className="ml-2 text-xs font-normal text-muted-foreground">{t("lot", { lot: d.lotCode })}</span>
           ) : null}
@@ -118,17 +114,7 @@ export default async function Page({ params }: Props) {
     {
       key: "state",
       header: t("docCol.state"),
-      cell: (d) => (
-        <span
-          data-state={d.state}
-          className={cn(
-            "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap",
-            DOC_STATE_TONE[d.state],
-          )}
-        >
-          {t(`docState.${d.state}`)}
-        </span>
-      ),
+      cell: (d) => <DocumentStateBadge state={d.state} />,
     },
     { key: "uploadedBy", header: t("docCol.uploadedBy"), cell: (d) => d.uploadedByName },
   ];

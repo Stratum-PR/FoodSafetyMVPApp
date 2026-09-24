@@ -189,3 +189,92 @@ test("an unknown supplier shows a friendly page inside the app", async ({ page }
   await page.getByRole("link", { name: "Suplidores" }).last().click();
   await expect(page).toHaveURL(`${COMPANY}/suplidores`);
 });
+
+/*
+ * Document review changes the shared in-memory sample data, and desktop and phone run at
+ * the same time. So these tests read the queue when they start, and
+ * take documents from opposite ends of it (desktop from the front, phone from the back).
+ */
+// The main sample company: 14 documents others uploaded, enough for these tests and retries.
+const REVIEW_COMPANY = COMPANY;
+
+async function reviewableDocuments(page: Page): Promise<string[]> {
+  await page.goto(`${REVIEW_COMPANY}/documentos`);
+  const rows = page.locator("main :is(tbody tr, ul[aria-label='Documentos'] > li)").filter({ visible: true });
+  const hrefs: string[] = [];
+  for (let i = 0; i < (await rows.count()); i++) {
+    const row = rows.nth(i);
+    // "(tú)" marks your own uploads, which you can't review.
+    if ((await row.innerText()).includes("(tú)")) continue;
+    hrefs.push((await row.locator("a[href*='/documentos/']").first().getAttribute("href"))!);
+  }
+  return hrefs;
+}
+
+const pick = (hrefs: string[], isMobile: boolean, offset: number) =>
+  isMobile ? hrefs[hrefs.length - 1 - offset] : hrefs[offset];
+
+test("the documents page opens on the review queue", async ({ page }) => {
+  await page.goto(`${COMPANY}/documentos`);
+  await expect(page.getByRole("link", { name: /Por revisar/ })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByText(/Los más antiguos primero/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByRole("link", { name: /Aceptados/ }).click();
+  await expect(page).toHaveURL(/estado=aceptados/);
+  await expect(page.getByText("Aceptado", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test("rejecting a document needs a reason and records who rejected it", async ({ page, isMobile }) => {
+  const href = pick(await reviewableDocuments(page), isMobile, 0);
+  await page.goto(href);
+  await page.getByRole("button", { name: "Rechazar" }).click();
+  await expect(page.locator("main").getByRole("alert")).toHaveText(/Escribe el motivo del rechazo/);
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByLabel("Motivo del rechazo").fill("Falta la firma del gerente de calidad.");
+  await page.getByRole("button", { name: "Rechazar" }).click();
+  await expect(page.getByText(/Rechazado por Usuario de ejemplo/)).toBeVisible();
+  await expect(page.getByText("Falta la firma del gerente de calidad.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aceptar" })).toHaveCount(0);
+
+  const queue = await reviewableDocuments(page);
+  expect(queue).not.toContain(href);
+});
+
+test("accepting a document takes it out of the queue", async ({ page, isMobile }) => {
+  const href = pick(await reviewableDocuments(page), isMobile, 1);
+  await page.goto(href);
+  await page.getByRole("button", { name: "Aceptar" }).click();
+  await expect(page.getByText(/Aceptado por Usuario de ejemplo/)).toBeVisible();
+  expect(await reviewableDocuments(page)).not.toContain(href);
+});
+
+test("you can't review a document you uploaded", async ({ page }) => {
+  await page.goto(`${REVIEW_COMPANY}/documentos`);
+  const mine = page
+    .locator("main :is(tbody tr, ul[aria-label='Documentos'] > li)")
+    .filter({ visible: true })
+    .filter({ hasText: "(tú)" })
+    .first();
+  await mine.locator("a[href*='/documentos/']").first().click();
+  await expect(page.getByText(/Tú subiste este documento/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aceptar" })).toHaveCount(0);
+});
+
+test("a read-only role sees documents but can't review them", async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: "preview_role", value: "viewer", url: baseURL! }]);
+  // From the middle of the queue: the deciding tests take from the ends.
+  const queue = await reviewableDocuments(page);
+  const href = queue[Math.floor(queue.length / 2)];
+  await page.goto(href);
+  await expect(page.getByText("Tu rol no puede aceptar ni rechazar documentos.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Rechazar" })).toHaveCount(0);
+});
+
+test("an unknown document shows a friendly page inside the app", async ({ page }) => {
+  const response = await page.goto(`${COMPANY}/documentos/no-existe`);
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1, name: "No encontramos este documento" })).toBeVisible();
+});
