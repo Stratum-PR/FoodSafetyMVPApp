@@ -98,3 +98,33 @@ test("previewing as another role changes what the menu shows", async ({ page, is
   await expect(page.getByText("Tu rol no tiene acceso a esta sección")).toBeVisible();
   await expectNoSeriousA11yIssues(page);
 });
+
+test("the panel summarizes compliance and expirations", async ({ page }) => {
+  await page.goto(COMPANY);
+  await expect(page.getByText("Cumplimiento", { exact: true })).toBeVisible();
+  await expect(page.getByText(/\d+ de \d+ requisitos al día/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vencimientos" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Menor cumplimiento" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByRole("link", { name: /Ver suplidores con pendientes/ }).click();
+  await expect(page).toHaveURL(/suplidores\?pendientes=1/);
+  await expect(page.getByLabel("Solo con documentos pendientes")).toBeChecked();
+});
+
+test("the supplier list searches and filters from the URL", async ({ page }) => {
+  await page.goto(`${COMPANY}/suplidores`);
+  await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByLabel("Tipo").selectOption("distributor");
+  await expect(page).toHaveURL(/tipo=distributor/);
+  await expect(page.getByText(/^\d+ suplidores de 44$/)).not.toHaveText("44 suplidores de 44");
+
+  await page.goto(`${COMPANY}/suplidores?q=no-existe-este-nombre`);
+  await expect(page.getByText("Ningún suplidor coincide con los filtros")).toBeVisible();
+  await page.getByRole("link", { name: "Quitar filtros" }).click();
+  await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

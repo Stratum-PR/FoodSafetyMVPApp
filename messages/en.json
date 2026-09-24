@@ -123,5 +123,62 @@
   "noAccess": {
     "title": "Your role does not have access to this section",
     "body": "If you need it, ask an administrator at your company to change your role."
+  },
+  "suppliers": {
+    "count": "{shown, plural, one {# supplier} other {# suppliers}} of {total}",
+    "search": "Search",
+    "searchPlaceholder": "Name or city",
+    "type": "Type",
+    "approval": "Approval",
+    "allTypes": "All",
+    "allApprovals": "All",
+    "attention": "Only with pending documents",
+    "apply": "Apply",
+    "clear": "Clear filters",
+    "caption": "Suppliers and their compliance",
+    "col": {
+      "name": "Supplier",
+      "type": "Type",
+      "approval": "Approval",
+      "sources": "Active materials",
+      "compliance": "Compliance"
+    },
+    "foreign": "Foreign · FSVP",
+    "inactive": "Inactive",
+    "complete": "All current",
+    "noRequirements": "No active requirements",
+    "expiredCount": "{count} expired",
+    "missingCount": "{count} missing",
+    "expiringCount": "{count} expiring",
+    "emptyTitle": "No supplier matches the filters",
+    "emptyBody": "Try another name or clear the filters."
+  },
+  "partyType": {
+    "manufacturer": "Manufacturer",
+    "distributor": "Distributor",
+    "both": "Manufacturer and distributor"
+  },
+  "approval": {
+    "approved": "Approved",
+    "conditional": "Conditional",
+    "pending": "Pending",
+    "suspended": "Suspended"
+  },
+  "panel": {
+    "compliance": "Compliance",
+    "complianceHint": "{met} of {total} requirements current",
+    "activeSuppliers": "Active suppliers",
+    "pendingApproval": "Awaiting approval",
+    "toReview": "Documents to review",
+    "requirements": "Document requirements",
+    "attention": "Expirations",
+    "attentionHint": "Expired and expiring in the next 30 days.",
+    "attentionEmpty": "Nothing expires in the next 30 days.",
+    "lowest": "Lowest compliance",
+    "viewAll": "See all suppliers",
+    "viewPending": "See suppliers with pending items",
+    "more": "and {count} more",
+    "inDays": "{days, plural, =0 {expires today} one {in # day} other {in # days}}",
+    "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
   }
 }

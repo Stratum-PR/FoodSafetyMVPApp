@@ -123,5 +123,62 @@
   "noAccess": {
     "title": "Tu rol no tiene acceso a esta sección",
     "body": "Si necesitas entrar, pídele a un administrador de tu empresa que cambie tu rol."
+  },
+  "suppliers": {
+    "count": "{shown, plural, one {# suplidor} other {# suplidores}} de {total}",
+    "search": "Buscar",
+    "searchPlaceholder": "Nombre o ciudad",
+    "type": "Tipo",
+    "approval": "Aprobación",
+    "allTypes": "Todos",
+    "allApprovals": "Todas",
+    "attention": "Solo con documentos pendientes",
+    "apply": "Aplicar",
+    "clear": "Quitar filtros",
+    "caption": "Suplidores y su cumplimiento",
+    "col": {
+      "name": "Suplidor",
+      "type": "Tipo",
+      "approval": "Aprobación",
+      "sources": "Materiales activos",
+      "compliance": "Cumplimiento"
+    },
+    "foreign": "Extranjero · FSVP",
+    "inactive": "Inactivo",
+    "complete": "Todo al día",
+    "noRequirements": "Sin requisitos activos",
+    "expiredCount": "{count, plural, one {# vencido} other {# vencidos}}",
+    "missingCount": "{count, plural, one {# falta} other {# faltan}}",
+    "expiringCount": "{count} por vencer",
+    "emptyTitle": "Ningún suplidor coincide con los filtros",
+    "emptyBody": "Prueba con otro nombre o quita los filtros."
+  },
+  "partyType": {
+    "manufacturer": "Manufacturero",
+    "distributor": "Distribuidor",
+    "both": "Manufacturero y distribuidor"
+  },
+  "approval": {
+    "approved": "Aprobado",
+    "conditional": "Condicional",
+    "pending": "Pendiente",
+    "suspended": "Suspendido"
+  },
+  "panel": {
+    "compliance": "Cumplimiento",
+    "complianceHint": "{met} de {total} requisitos al día",
+    "activeSuppliers": "Suplidores activos",
+    "pendingApproval": "Por aprobar",
+    "toReview": "Documentos por revisar",
+    "requirements": "Requisitos de documentos",
+    "attention": "Vencimientos",
+    "attentionHint": "Vencidos y por vencer en los próximos 30 días.",
+    "attentionEmpty": "Nada vence en los próximos 30 días.",
+    "lowest": "Menor cumplimiento",
+    "viewAll": "Ver todos los suplidores",
+    "viewPending": "Ver suplidores con pendientes",
+    "more": "y {count} más",
+    "inDays": "{days, plural, =0 {vence hoy} one {en # día} other {en # días}}",
+    "daysAgo": "{days, plural, one {hace # día} other {hace # días}}"
   }
 }
