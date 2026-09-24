@@ -1,0 +1,112 @@
+{
+  "app": {
+    "name": "Stratum",
+    "description": "Supplier and food safety document control"
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "label": "Main navigation",
+    "panel": "Dashboard",
+    "suppliers": "Suppliers",
+    "documents": "Documents",
+    "requests": "Requests",
+    "history": "History",
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "menuTitle": "Menu"
+  },
+  "topbar": {
+    "company": "Company",
+    "switchCompany": "Switch company",
+    "language": "Language",
+    "spanish": "Español",
+    "english": "English",
+    "userMenu": "User menu",
+    "sampleUser": "Sample user",
+    "sampleRole": "Quality manager",
+    "signOut": "Sign out",
+    "signOutSoon": "Sign-in arrives with the database"
+  },
+  "sample": {
+    "badge": "Sample data",
+    "hint": "These companies, suppliers and documents are fictional. None of this data belongs to a real customer."
+  },
+  "status": {
+    "current": "Current",
+    "expiring": "Expiring",
+    "missing": "Missing"
+  },
+  "pages": {
+    "panel": {
+      "title": "Dashboard",
+      "description": "What needs a decision today: expirations, documents to review and pending suppliers."
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "description": "Manufacturers and distributors, their ingredients and the status of their file."
+    },
+    "documents": {
+      "title": "Documents",
+      "description": "Certificates and documents to review, current, expiring and missing."
+    },
+    "requests": {
+      "title": "Requests",
+      "description": "Documents requested from suppliers, with their reminders and due dates."
+    },
+    "history": {
+      "title": "History",
+      "description": "Who did what, when and why, on every supplier and document."
+    },
+    "settings": {
+      "title": "Settings",
+      "description": "Company details, users, roles and the document catalog."
+    }
+  },
+  "empty": {
+    "buildingTitle": "This section is being built in the coming weeks",
+    "buildingBody": "For now the app frame is ready: navigation, languages and design. The real screens arrive with the sample data."
+  },
+  "home": {
+    "title": "Choose a company",
+    "description": "Each company has its own space. Your data never mixes with another company's."
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "body": "We couldn't show this page. Please try again. If the problem continues, email soporte@stratumpr.com with this code.",
+    "reference": "Reference: {code}",
+    "noReference": "no reference",
+    "retry": "Try again",
+    "home": "Go home",
+    "notFoundTitle": "We couldn't find this page",
+    "notFoundBody": "The address doesn't exist or is no longer available."
+  },
+  "review": {
+    "title": "Component review",
+    "description": "Every piece of the design system, to approve the look before building real screens.",
+    "colors": "Colors",
+    "typography": "Typography",
+    "buttons": "Buttons",
+    "statuses": "Document statuses",
+    "forms": "Forms",
+    "table": "Table (becomes cards on a phone)",
+    "empty": "Empty state",
+    "headingSample": "Suppliers and documents, always current",
+    "bodySample": "Stratum keeps every supplier's certificates current, requests the missing ones and warns you before they expire.",
+    "primary": "Primary",
+    "secondary": "Secondary",
+    "outline": "Outline",
+    "ghost": "Ghost",
+    "destructive": "Delete",
+    "supplierName": "Supplier name",
+    "supplierPlaceholder": "E.g.: Frutas del Sur",
+    "partyType": "Type",
+    "manufacturer": "Manufacturer",
+    "distributor": "Distributor",
+    "notes": "Notes",
+    "colSupplier": "Supplier",
+    "colType": "Type",
+    "colDocument": "Document",
+    "colStatus": "Status",
+    "colExpires": "Expires"
+  }
+}
