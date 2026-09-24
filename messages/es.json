@@ -151,7 +151,11 @@
     "missingCount": "{count, plural, one {# falta} other {# faltan}}",
     "expiringCount": "{count} por vencer",
     "emptyTitle": "Ningún suplidor coincide con los filtros",
-    "emptyBody": "Prueba con otro nombre o quita los filtros."
+    "emptyBody": "Prueba con otro nombre o quita los filtros.",
+    "sortBy": "Ordenar por",
+    "sortDir": "Orden",
+    "asc": "Ascendente",
+    "desc": "Descendente"
   },
   "partyType": {
     "manufacturer": "Manufacturero",
@@ -180,5 +184,88 @@
     "more": "y {count} más",
     "inDays": "{days, plural, =0 {vence hoy} one {en # día} other {en # días}}",
     "daysAgo": "{days, plural, one {hace # día} other {hace # días}}"
+  },
+  "supplier": {
+    "back": "Suplidores",
+    "notFoundTitle": "No encontramos este suplidor",
+    "notFoundBody": "Puede que ya no exista o que la dirección esté incompleta.",
+    "facts": {
+      "label": "Datos del suplidor",
+      "location": "Ubicación",
+      "fei": "FDA FEI",
+      "feiNone": "Sin FEI registrado",
+      "addedBy": "Agregado por"
+    },
+    "compliance": "Cumplimiento",
+    "complianceHint": "{met} de {total} requisitos al día",
+    "partyDocs": "Documentos del suplidor",
+    "partyDocsHint": "Lo que se le pide a este suplidor por su rol y su origen.",
+    "col": {
+      "requirement": "Requisito",
+      "reason": "Por qué",
+      "status": "Estado",
+      "expires": "Vence"
+    },
+    "or": "o",
+    "neverExpires": "No vence",
+    "none": "—",
+    "reason": {
+      "manufacturer": "Manufacturero",
+      "distributor": "Distribuidor",
+      "vendor": "Le compras directo",
+      "fsvp": "FSVP: importado",
+      "ingredient": "Ingrediente",
+      "packaging": "Empaque"
+    },
+    "materials": "Materiales",
+    "materialsHint": "Cada material aprobado con este suplidor y los documentos que pide.",
+    "noMaterials": "Este suplidor no tiene materiales aprobados.",
+    "makes": "Lo fabrica",
+    "sells": "Lo distribuye",
+    "direct": "Compra directa",
+    "distributedBy": "Distribuido por",
+    "madeBy": "Fabricado por",
+    "notEvaluated": "No se evalúa: este material no se compra ahora.",
+    "sourceStatus": {
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "rejected": "Rechazado"
+    },
+    "risk": {
+      "low": "Riesgo bajo",
+      "medium": "Riesgo medio",
+      "high": "Riesgo alto"
+    },
+    "kind": {
+      "ingredient": "Ingrediente",
+      "packaging": "Empaque"
+    },
+    "documents": "Documentos recibidos",
+    "documentsHint": "Todo lo recibido, incluidos los que esperan revisión y los certificados de análisis por lote.",
+    "noDocuments": "Todavía no hay documentos de este suplidor.",
+    "docCol": {
+      "type": "Documento",
+      "about": "Para",
+      "received": "Recibido",
+      "expires": "Vence",
+      "state": "Estado",
+      "uploadedBy": "Subido por"
+    },
+    "supplierItself": "El suplidor",
+    "lot": "Lote {lot}",
+    "docState": {
+      "pending_review": "Por revisar",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "superseded": "Reemplazado"
+    },
+    "inReview": "Hay uno por revisar"
+  },
+  "lifecycle": {
+    "onboarding": "Incorporación",
+    "verification": "Verificación",
+    "monitoring": "Seguimiento",
+    "suspended": "Suspendido",
+    "inactive": "Inactivo"
   }
 }

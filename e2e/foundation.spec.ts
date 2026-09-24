@@ -128,3 +128,64 @@ test("the supplier list searches and filters from the URL", async ({ page }) => 
   await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("clicking a column name sorts the supplier list, and again reverses it", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Phones sort with the 'Ordenar por' control; column headers are desktop only.");
+  await page.goto(`${COMPANY}/suplidores`);
+  const header = page.getByRole("columnheader", { name: "Materiales activos" });
+  await expect(header).toHaveAttribute("aria-sort", "none");
+
+  await header.getByRole("link").click();
+  await expect(page).toHaveURL(/orden=materiales&dir=asc/);
+  await expect(header).toHaveAttribute("aria-sort", "ascending");
+  const asc = await page.locator("table tbody tr td:nth-child(4)").allTextContents();
+  expect(asc.map(Number)).toEqual([...asc.map(Number)].sort((a, b) => a - b));
+
+  await header.getByRole("link").click();
+  await expect(page).toHaveURL(/orden=materiales&dir=desc/);
+  await expect(header).toHaveAttribute("aria-sort", "descending");
+  const desc = await page.locator("table tbody tr td:nth-child(4)").allTextContents();
+  expect(desc.map(Number)).toEqual([...desc.map(Number)].sort((a, b) => b - a));
+
+  // Sorting keeps the filters, and filtering keeps the sort.
+  await page.getByLabel("Solo con documentos pendientes").check();
+  await expect(page).toHaveURL(/pendientes=1/);
+  await expect(page).toHaveURL(/orden=materiales&dir=desc/);
+  await page.getByRole("columnheader", { name: "Suplidor" }).getByRole("link").click();
+  await expect(page).toHaveURL(/pendientes=1.*orden=nombre&dir=asc/);
+});
+
+test("phones sort with the sort control", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Phone-only control.");
+  await page.goto(`${COMPANY}/suplidores`);
+  await page.getByLabel("Ordenar por").selectOption("nombre");
+  await expect(page).toHaveURL(/orden=nombre/);
+  const names = await page.locator("ul[aria-label] > li a").allTextContents();
+  expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "es")));
+});
+
+test("a supplier page shows its requirements, materials and documents", async ({ page }) => {
+  await page.goto(`${COMPANY}/suplidores`);
+  const first = page.getByRole("link", { name: /Inc\.|S\.A\./ }).first();
+  const name = (await first.textContent())!.trim();
+  await first.click();
+
+  await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
+  await expect(page).toHaveTitle(`${name} · Stratum`);
+  for (const section of ["Documentos del suplidor", "Materiales", "Documentos recibidos"]) {
+    await expect(page.getByRole("heading", { level: 2, name: section })).toBeVisible();
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByRole("link", { name: "Suplidores" }).first().click();
+  await expect(page).toHaveURL(`${COMPANY}/suplidores`);
+});
+
+test("an unknown supplier shows a friendly page inside the app", async ({ page }) => {
+  const response = await page.goto(`${COMPANY}/suplidores/no-existe`);
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1, name: "No encontramos este suplidor" })).toBeVisible();
+  await page.getByRole("link", { name: "Suplidores" }).last().click();
+  await expect(page).toHaveURL(`${COMPANY}/suplidores`);
+});

@@ -1,14 +1,31 @@
-import type { Approval } from "@/domain/suppliers";
+import type { Approval, PartyType } from "@/domain/suppliers";
 
 import type { SupplierRow } from "./suppliers";
 
 /*
- * Supplier list filters. They live in the URL (?q=&tipo=&aprobacion=&pendientes=1) so a
- * filtered list can be bookmarked or shared, and the page works without JavaScript.
+ * Supplier list filters and sort order. They live in the URL
+ * (?q=&tipo=&aprobacion=&pendientes=1&orden=cumplimiento&dir=asc) so a list can be
+ * bookmarked or shared, and the page works without JavaScript.
  */
 
 export const TYPE_FILTERS = ["all", "manufacturer", "distributor"] as const;
 export const APPROVAL_FILTERS = ["all", "approved", "conditional", "pending", "suspended"] as const;
+
+export const SORT_KEYS = ["name", "type", "approval", "sources", "compliance"] as const;
+export type SortKey = (typeof SORT_KEYS)[number];
+export type SortDir = "asc" | "desc";
+
+/** URL values are Spanish, like the rest of the URL. */
+const SORT_PARAM: Record<SortKey, string> = {
+  name: "nombre",
+  type: "tipo",
+  approval: "aprobacion",
+  sources: "materiales",
+  compliance: "cumplimiento",
+};
+
+/** Default: worst compliance first, the list a quality manager works from. */
+export const DEFAULT_SORT: { key: SortKey; dir: SortDir } = { key: "compliance", dir: "asc" };
 
 export type SupplierFilters = {
   q: string;
@@ -16,6 +33,8 @@ export type SupplierFilters = {
   approval: (typeof APPROVAL_FILTERS)[number];
   /** Only suppliers with an expiring, expired or missing document. */
   attention: boolean;
+  sort: SortKey;
+  dir: SortDir;
 };
 
 type Params = Record<string, string | string[] | undefined>;
@@ -29,12 +48,40 @@ function oneOf<T extends string>(list: readonly T[], value: string): T {
 }
 
 export function parseFilters(params: Params): SupplierFilters {
+  const sort = SORT_KEYS.find((k) => SORT_PARAM[k] === first(params.orden));
+  const dir = first(params.dir);
   return {
     q: first(params.q).trim().slice(0, 100),
     type: oneOf(TYPE_FILTERS, first(params.tipo)),
     approval: oneOf(APPROVAL_FILTERS, first(params.aprobacion)),
     attention: first(params.pendientes) === "1",
+    sort: sort ?? DEFAULT_SORT.key,
+    dir: dir === "asc" || dir === "desc" ? dir : sort ? "asc" : DEFAULT_SORT.dir,
   };
+}
+
+export function sortParam(key: SortKey): string {
+  return SORT_PARAM[key];
+}
+
+/** Query string for the list with these filters; only non-default values are written. */
+export function filtersQuery(f: SupplierFilters): string {
+  const p = new URLSearchParams();
+  if (f.q) p.set("q", f.q);
+  if (f.type !== "all") p.set("tipo", f.type);
+  if (f.approval !== "all") p.set("aprobacion", f.approval);
+  if (f.attention) p.set("pendientes", "1");
+  if (f.sort !== DEFAULT_SORT.key || f.dir !== DEFAULT_SORT.dir) {
+    p.set("orden", SORT_PARAM[f.sort]);
+    p.set("dir", f.dir);
+  }
+  const query = p.toString();
+  return query ? `?${query}` : "";
+}
+
+/** The filters after clicking a column: the same column flips direction, a new one starts ascending. */
+export function withSort(f: SupplierFilters, key: SortKey): SupplierFilters {
+  return { ...f, sort: key, dir: f.sort === key && f.dir === "asc" ? "desc" : "asc" };
 }
 
 export function hasFilters(f: SupplierFilters): boolean {
@@ -64,4 +111,23 @@ export function filterSuppliers<Row extends SupplierRow>(rows: Row[], f: Supplie
     if (f.attention && !needsAttention(row)) return false;
     return true;
   });
+}
+
+const TYPE_ORDER: PartyType[] = ["manufacturer", "both", "distributor"];
+const APPROVAL_ORDER: Approval[] = ["approved", "conditional", "pending", "suspended"];
+
+const byName = (a: SupplierRow, b: SupplierRow) => a.name.localeCompare(b.name, "es");
+
+const COMPARE: Record<SortKey, (a: SupplierRow, b: SupplierRow) => number> = {
+  name: byName,
+  type: (a, b) => TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type),
+  approval: (a, b) => APPROVAL_ORDER.indexOf(a.approval) - APPROVAL_ORDER.indexOf(b.approval),
+  sources: (a, b) => a.activeSources - b.activeSources,
+  compliance: (a, b) => a.compliance.percent - b.compliance.percent,
+};
+
+/** Sorts a copy. Ties are broken by name, always A→Z, so the order is stable. */
+export function sortSuppliers<Row extends SupplierRow>(rows: Row[], key: SortKey, dir: SortDir): Row[] {
+  const sign = dir === "asc" ? 1 : -1;
+  return [...rows].sort((a, b) => sign * COMPARE[key](a, b) || byName(a, b));
 }

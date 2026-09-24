@@ -7,7 +7,8 @@ import type { Approval, Lifecycle, PartyType } from "@/domain/suppliers";
 import { isForeign } from "@/domain/suppliers";
 
 import { type RequestContext, requirePermission } from "./context";
-import { generateSampleSuppliers, type SampleSupplierData } from "./sample/suppliers";
+import { generateSampleSuppliers, SAMPLE_USERS, type SampleSupplierData } from "./sample/suppliers";
+import { buildSupplierDetail, type SupplierDetail } from "./supplier-detail";
 
 /*
  * Supplier service. Today it reads the fictional sample data; later it queries Postgres
@@ -117,4 +118,10 @@ export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary
     documentsToReview: data.documents.filter((d) => d.state === "pending_review").length,
     attention,
   };
+}
+
+/** One supplier with its requirements, materials and documents, or null if it doesn't exist. */
+export async function getSupplier(ctx: RequestContext, partyId: string): Promise<SupplierDetail | null> {
+  requirePermission(ctx, "suppliers.view");
+  return buildSupplierDetail(loadData(ctx), partyId, ctx.today, SAMPLE_USERS);
 }

@@ -1,3 +1,5 @@
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,11 +11,32 @@ export type Column<Row> = {
   /** The column that titles each card on a phone. Exactly one column should set it. */
   primary?: boolean;
   className?: string;
+  /** Makes the header a link that sorts by this column. dir is set on the column currently sorted. */
+  sort?: { href: string; dir: "asc" | "desc" | null };
 };
+
+const ARIA_SORT = { asc: "ascending", desc: "descending" } as const;
+
+function Header<Row>({ column }: { column: Column<Row> }) {
+  if (!column.sort) return column.header;
+  const { href, dir } = column.sort;
+  const Icon = dir === "asc" ? ArrowUp : dir === "desc" ? ArrowDown : ArrowUpDown;
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      className="-mx-1.5 inline-flex items-center gap-1 rounded px-1.5 py-1 hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+    >
+      {column.header}
+      <Icon aria-hidden className={dir ? "size-3.5" : "size-3.5 opacity-40"} />
+    </Link>
+  );
+}
 
 /**
  * A table on tablets and computers; a list of cards on phones, where wide tables don't fit.
- * Same data and columns in both, so screens don't build two layouts by hand.
+ * Same data and columns in both, so screens don't build two layouts by hand. Sortable
+ * headers are links (the order lives in the URL); on phones the page gives its own sort control.
  */
 export function ResponsiveTable<Row>({
   columns,
@@ -37,8 +60,12 @@ export function ResponsiveTable<Row>({
           <TableHeader>
             <TableRow>
               {columns.map((c) => (
-                <TableHead key={c.key} className={c.className}>
-                  {c.header}
+                <TableHead
+                  key={c.key}
+                  className={c.className}
+                  aria-sort={c.sort?.dir ? ARIA_SORT[c.sort.dir] : c.sort ? "none" : undefined}
+                >
+                  <Header column={c} />
                 </TableHead>
               ))}
             </TableRow>

@@ -151,7 +151,11 @@
     "missingCount": "{count} missing",
     "expiringCount": "{count} expiring",
     "emptyTitle": "No supplier matches the filters",
-    "emptyBody": "Try another name or clear the filters."
+    "emptyBody": "Try another name or clear the filters.",
+    "sortBy": "Sort by",
+    "sortDir": "Order",
+    "asc": "Ascending",
+    "desc": "Descending"
   },
   "partyType": {
     "manufacturer": "Manufacturer",
@@ -180,5 +184,88 @@
     "more": "and {count} more",
     "inDays": "{days, plural, =0 {expires today} one {in # day} other {in # days}}",
     "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+  },
+  "supplier": {
+    "back": "Suppliers",
+    "notFoundTitle": "We couldn't find this supplier",
+    "notFoundBody": "It may no longer exist, or the address is incomplete.",
+    "facts": {
+      "label": "Supplier details",
+      "location": "Location",
+      "fei": "FDA FEI",
+      "feiNone": "No FEI on file",
+      "addedBy": "Added by"
+    },
+    "compliance": "Compliance",
+    "complianceHint": "{met} of {total} requirements current",
+    "partyDocs": "Supplier documents",
+    "partyDocsHint": "What this supplier is asked for, based on its role and origin.",
+    "col": {
+      "requirement": "Requirement",
+      "reason": "Why",
+      "status": "Status",
+      "expires": "Expires"
+    },
+    "or": "or",
+    "neverExpires": "Does not expire",
+    "none": "—",
+    "reason": {
+      "manufacturer": "Manufacturer",
+      "distributor": "Distributor",
+      "vendor": "You buy from it directly",
+      "fsvp": "FSVP: imported",
+      "ingredient": "Ingredient",
+      "packaging": "Packaging"
+    },
+    "materials": "Materials",
+    "materialsHint": "Each material approved with this supplier and the documents it needs.",
+    "noMaterials": "This supplier has no approved materials.",
+    "makes": "Makes it",
+    "sells": "Distributes it",
+    "direct": "Bought direct",
+    "distributedBy": "Distributed by",
+    "madeBy": "Made by",
+    "notEvaluated": "Not evaluated: this material is not being bought now.",
+    "sourceStatus": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "rejected": "Rejected"
+    },
+    "risk": {
+      "low": "Low risk",
+      "medium": "Medium risk",
+      "high": "High risk"
+    },
+    "kind": {
+      "ingredient": "Ingredient",
+      "packaging": "Packaging"
+    },
+    "documents": "Documents received",
+    "documentsHint": "Everything received, including documents waiting for review and per-lot certificates of analysis.",
+    "noDocuments": "No documents from this supplier yet.",
+    "docCol": {
+      "type": "Document",
+      "about": "For",
+      "received": "Received",
+      "expires": "Expires",
+      "state": "Status",
+      "uploadedBy": "Uploaded by"
+    },
+    "supplierItself": "The supplier",
+    "lot": "Lot {lot}",
+    "docState": {
+      "pending_review": "To review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "superseded": "Superseded"
+    },
+    "inReview": "One is waiting for review"
+  },
+  "lifecycle": {
+    "onboarding": "Onboarding",
+    "verification": "Verification",
+    "monitoring": "Monitoring",
+    "suspended": "Suspended",
+    "inactive": "Inactive"
   }
 }
