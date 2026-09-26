@@ -1,6 +1,7 @@
 import { addDays, type IsoDate, isIsoDate } from "./dates";
+import type { Obligation, ObligationStatus } from "./obligations";
+import type { ProgramCode, RequirementCode } from "./programs";
 import type { Requirement, RequirementReason } from "./requirements";
-import type { RequirementResult } from "./status";
 import type { DocumentSubject } from "./suppliers";
 
 /*
@@ -19,8 +20,10 @@ export type RequestItemStatus = "requested" | "uploaded" | "resubmitted" | "acce
 
 export type RequestItem = {
   id: string;
-  /** The requirement it asks for (Requirement.key). */
+  /** The requirement it asks for (Requirement.key: subject + requirement code). */
   requirementKey: string;
+  code: RequirementCode;
+  program: ProgramCode;
   subject: DocumentSubject;
   /** Any one of these document types satisfies it. */
   anyOf: readonly string[];
@@ -102,9 +105,30 @@ export function requestProgress(items: RequestItem[]): RequestProgress {
   };
 }
 
-/** Gaps that can be requested: missing or expired, plus expiring (to renew in time). */
-export function requestableGaps(results: RequirementResult[]): RequirementResult[] {
-  return results.filter((r) => r.status !== "current");
+/**
+ * Obligations that can be requested: missing, expired or rejected, plus expiring (to renew in
+ * time). Not those waiting for our review, waived or not applicable: asking again would be noise.
+ */
+const REQUESTABLE: ReadonlySet<ObligationStatus> = new Set(["missing", "expired", "rejected", "expiring"]);
+
+export function requestableGaps(obligations: Obligation[]): Obligation[] {
+  return obligations.filter((o) => REQUESTABLE.has(o.status));
+}
+
+/** A new item for a requirement. */
+export function newItem(id: string, requirement: Requirement, at: string): RequestItem {
+  return {
+    id,
+    requirementKey: requirement.key,
+    code: requirement.code,
+    program: requirement.program,
+    subject: requirement.subject,
+    anyOf: requirement.anyOf,
+    reason: requirement.reason,
+    status: "requested",
+    documentIds: [],
+    updatedAt: at,
+  };
 }
 
 /* Creating a request */

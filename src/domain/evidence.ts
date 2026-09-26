@@ -7,6 +7,9 @@ import { evaluateRequirement, type RequirementStatus } from "./status";
 import {
   type ApprovedSource,
   type CertificateDetails,
+  involves,
+  sameSubject,
+  type Site,
   CHECKLIST_ITEMS,
   type ChecklistItem,
   type EvidenceDetails,
@@ -157,27 +160,22 @@ export function checkVerification(typeCode: string, input: VerificationInput, to
 
 /** Requirements this document would satisfy once accepted: same subject, and one of the types asked. */
 export function requirementsCoveredBy(doc: SupplierDocument, requirements: Requirement[]): Requirement[] {
-  return requirements.filter(
-    (r) =>
-      r.anyOf.includes(doc.typeCode) &&
-      (r.subject.kind === "party"
-        ? doc.subject.kind === "party" && doc.subject.partyId === r.subject.partyId
-        : doc.subject.kind === "source" && doc.subject.sourceId === r.subject.sourceId),
-  );
+  return requirements.filter((r) => r.anyOf.includes(doc.typeCode) && sameSubject(doc.subject, r.subject));
 }
 
 /**
- * High risk when the document covers a high-risk material: it's filed on a high-risk active
- * source, or on a supplier that makes, sells or distributes one.
+ * High risk when the document covers a high-risk material that is bought today: it's filed on a
+ * high-risk active source, on the site that makes one, or on a supplier that makes or sells one.
  */
-export function isHighRisk(doc: SupplierDocument, sources: ApprovedSource[]): boolean {
-  const risky = sources.filter((s) => s.status === "active" && s.risk === "high");
-  if (doc.subject.kind === "source") {
-    const id = doc.subject.sourceId;
-    return risky.some((s) => s.id === id);
+export function isHighRisk(doc: SupplierDocument, sources: ApprovedSource[], sites: Site[]): boolean {
+  const risky = sources.filter((s) => s.commercial === "active" && s.risk === "high");
+  const subject = doc.subject;
+  if (subject.kind === "source") return risky.some((s) => s.id === subject.sourceId);
+  if (subject.kind === "site") {
+    const partyId = sites.find((x) => x.id === subject.siteId)?.partyId;
+    return risky.some((s) => s.siteId === subject.siteId || (partyId !== undefined && s.distributorId === partyId));
   }
-  const partyId = doc.subject.partyId;
-  return risky.some((s) => s.manufacturerId === partyId || s.distributorId === partyId);
+  return risky.some((s) => involves(s, subject.partyId));
 }
 
 /** Roles that give the final review on high-risk evidence. */

@@ -23,6 +23,8 @@ function item(status: RequestItemStatus, key = `k-${status}`): RequestItem {
   return {
     id: `i-${key}`,
     requirementKey: key,
+    code: "questionnaire",
+    program: "supplier_program",
     subject: { kind: "party", partyId: "p1" },
     anyOf: ["questionnaire"],
     reason: "manufacturer",
@@ -143,6 +145,12 @@ describe("new requests", () => {
     subject: { kind: "party", partyId: "p1" },
     anyOf: ["questionnaire"],
     reason: "manufacturer",
+    code: "questionnaire",
+    program: "supplier_program",
+    severity: "major",
+    blocking: true,
+    ruleVersion: "2026-09-26",
+    sourceIds: ["s1"],
   });
   const context = { contactIds: ["c1"], gaps: [gap("a"), gap("b")], openKeys: new Set(["b"]), today: TODAY };
   const input = { contactId: "c1", requirementKeys: ["a"], dueOn: "2026-10-08", language: "en", message: " Hola " };

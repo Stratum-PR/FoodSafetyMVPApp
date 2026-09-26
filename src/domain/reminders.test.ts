@@ -127,6 +127,8 @@ describe("request reminders", () => {
       {
         id: "i1",
         requirementKey: "k",
+        code: "questionnaire",
+        program: "supplier_program",
         subject: { kind: "party", partyId: "p1" },
         anyOf: ["questionnaire"],
         reason: "manufacturer",

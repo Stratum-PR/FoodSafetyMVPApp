@@ -12,25 +12,45 @@ import {
   reviewPriority,
 } from "./evidence";
 import { allRequirements, type SupplierData } from "./requirements";
-import { type ApprovedSource, CHECKLIST_ITEMS, type Party, type SupplierDocument } from "./suppliers";
+import {
+  type ApprovedSource,
+  backfillSource,
+  CHECKLIST_ITEMS,
+  legacySite,
+  type Party,
+  type SupplierDocument,
+} from "./suppliers";
 
 const TODAY = "2026-09-24";
 const ALL = [...CHECKLIST_ITEMS];
 
 function party(id: string, type: Party["type"]): Party {
-  return { id, name: id, type, city: "", country: "PR", lifecycle: "monitoring", approval: "approved", createdBy: "u" };
+  return {
+    id,
+    name: id,
+    type,
+    direction: "request",
+    city: "",
+    country: "PR",
+    lifecycle: "monitoring",
+    approval: "approved",
+    createdBy: "u",
+  };
 }
 const src = (id: string, materialId: string, m: string, d: string | null, risk: ApprovedSource["risk"]) =>
-  ({ id, materialId, manufacturerId: m, distributorId: d, status: "active", risk }) satisfies ApprovedSource;
+  backfillSource({ id, materialId, manufacturerId: m, distributorId: d, status: "active", risk }, `${m}-site-legacy`);
 
+const parties = [party("mfr", "manufacturer"), party("dist", "distributor"), party("mfr2", "manufacturer")];
 const data: SupplierData = {
-  parties: [party("mfr", "manufacturer"), party("dist", "distributor"), party("mfr2", "manufacturer")],
+  parties,
+  sites: parties.map(legacySite),
   materials: [
     { id: "sugar", name: "Azúcar", code: "I1", kind: "ingredient" },
     { id: "salt", name: "Sal", code: "I2", kind: "ingredient" },
   ],
   sources: [src("s1", "sugar", "mfr", "dist", "high"), src("s2", "salt", "mfr2", null, "low")],
 };
+const site = (partyId: string) => ({ kind: "site", siteId: `${partyId}-site-legacy` }) as const;
 const requirements = allRequirements(data);
 
 let n = 0;
@@ -112,20 +132,20 @@ describe("verification checklist and details", () => {
 
 describe("coverage, risk and priority", () => {
   it("links one document to every requirement it covers, and only those", () => {
-    // The distributor's GFSI certificate covers only its own requirement, not the manufacturer's.
-    const gfsi = doc("gfsi_cert", { kind: "party", partyId: "dist" });
+    // The distributor site's GFSI certificate covers only its own facility, not the manufacturer's.
+    const gfsi = doc("gfsi_cert", site("dist"));
     const covered = requirementsCoveredBy(gfsi, requirements);
-    expect(covered.map((r) => r.key)).toEqual(["party:dist|gfsi_cert+audit_report"]);
+    expect(covered.map((r) => r.key)).toEqual(["site:dist-site-legacy|facility_certification"]);
     // The spec sheet of one material doesn't cover another material's.
     const spec = doc("spec_sheet", { kind: "source", sourceId: "s1" });
-    expect(requirementsCoveredBy(spec, requirements).map((r) => r.key)).toEqual(["source:s1|spec_sheet"]);
+    expect(requirementsCoveredBy(spec, requirements).map((r) => r.key)).toEqual(["source:s1|specification"]);
   });
 
   it("marks documents on or about high-risk materials as high risk", () => {
-    expect(isHighRisk(doc("spec_sheet", { kind: "source", sourceId: "s1" }), data.sources)).toBe(true);
-    expect(isHighRisk(doc("spec_sheet", { kind: "source", sourceId: "s2" }), data.sources)).toBe(false);
-    expect(isHighRisk(doc("gfsi_cert", { kind: "party", partyId: "dist" }), data.sources)).toBe(true);
-    expect(isHighRisk(doc("gfsi_cert", { kind: "party", partyId: "mfr2" }), data.sources)).toBe(false);
+    expect(isHighRisk(doc("spec_sheet", { kind: "source", sourceId: "s1" }), data.sources, data.sites)).toBe(true);
+    expect(isHighRisk(doc("spec_sheet", { kind: "source", sourceId: "s2" }), data.sources, data.sites)).toBe(false);
+    expect(isHighRisk(doc("gfsi_cert", site("dist")), data.sources, data.sites)).toBe(true);
+    expect(isHighRisk(doc("gfsi_cert", site("mfr2")), data.sources, data.sites)).toBe(false);
   });
 
   it("ranks blocking high-risk documents first", () => {
@@ -145,25 +165,25 @@ describe("coverage, risk and priority", () => {
 
 describe("acceptance impact", () => {
   it("shows the status each covered requirement goes from and to, before deciding", () => {
-    const pending = doc("gfsi_cert", { kind: "party", partyId: "mfr" });
+    const pending = doc("gfsi_cert", site("mfr"));
     expect(
       acceptanceImpact(pending, requirements, [pending], DEFAULT_CATALOG, TODAY).map((r) => [
         r.requirement.key,
         r.before,
         r.after,
       ]),
-    ).toEqual([["party:mfr|gfsi_cert+audit_report", "missing", "current"]]);
+    ).toEqual([["site:mfr-site-legacy|facility_certification", "missing", "current"]]);
   });
 
   it("counts the replaced version as gone: an early renewal of a current certificate stays current", () => {
-    const old = doc("gfsi_cert", { kind: "party", partyId: "mfr" }, { state: "accepted", issuedOn: "2026-01-01" });
-    const renewal = doc("gfsi_cert", { kind: "party", partyId: "mfr" });
+    const old = doc("gfsi_cert", site("mfr"), { state: "accepted", issuedOn: "2026-01-01" });
+    const renewal = doc("gfsi_cert", site("mfr"));
     const [row] = acceptanceImpact(renewal, requirements, [old, renewal], DEFAULT_CATALOG, TODAY);
     expect([row.before, row.after]).toEqual(["current", "current"]);
   });
 
   it("an uploaded, unreviewed document never satisfies anything by itself", () => {
-    const pending = doc("gfsi_cert", { kind: "party", partyId: "mfr" });
+    const pending = doc("gfsi_cert", site("mfr"));
     const impact = acceptanceImpact(pending, requirements, [pending], DEFAULT_CATALOG, TODAY);
     expect(impact[0].before).toBe("missing");
   });
