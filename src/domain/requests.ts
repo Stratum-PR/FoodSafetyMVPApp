@@ -255,15 +255,15 @@ export function itemWaived(item: RequestItem, reason: string, at: string): Reque
   return { ...item, status: "waived", waivedReason: reason, updatedAt: at };
 }
 
-export function isItemOpen(item: RequestItem): boolean {
+export function isItemOpen(item: Pick<RequestItem, "status">): boolean {
   return !CLOSED.has(item.status);
 }
 
 /** Items the supplier can upload for right now. */
-export function isSupplierTurn(item: RequestItem): boolean {
+export function isSupplierTurn(item: Pick<RequestItem, "status">): boolean {
   return SUPPLIER_TURN.has(item.status);
 }
 
-export function isOurTurn(item: RequestItem): boolean {
+export function isOurTurn(item: Pick<RequestItem, "status">): boolean {
   return OUR_TURN.has(item.status);
 }

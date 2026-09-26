@@ -90,17 +90,15 @@ describe("document list", () => {
     const rank = { urgent: 0, high: 1, normal: 2 };
     for (let i = 1; i < queue.length; i++) {
       const [a, b] = [queue[i - 1], queue[i]];
-      expect(
-        rank[a.priority] < rank[b.priority] || (a.priority === b.priority && a.receivedOn <= b.receivedOn),
-      ).toBe(true);
+      expect(rank[a.priority] < rank[b.priority] || (a.priority === b.priority && a.receivedOn <= b.receivedOn)).toBe(
+        true,
+      );
     }
   });
 
   it("filters by supplier, type, program and expiry window", () => {
     const party = rows[0].partyId;
-    expect(filterDocuments(rows, f({ tab: "aceptados", party }), TODAY).every((r) => r.partyId === party)).toBe(
-      true,
-    );
+    expect(filterDocuments(rows, f({ tab: "aceptados", party }), TODAY).every((r) => r.partyId === party)).toBe(true);
     const coa = filterDocuments(rows, f({ tab: "aceptados", type: "coa" }), TODAY);
     expect(coa.every((r) => r.typeCode === "coa")).toBe(true);
     const fsma = filterDocuments(rows, f({ tab: "aceptados", program: "fsma_core" }), TODAY);

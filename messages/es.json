@@ -1193,14 +1193,14 @@
       "emailsEmpty": "No se han enviado correos.",
       "activity": "Actividad",
       "action": {
-        "request.created": "Creó la solicitud",
-        "request.sent": "Envió la solicitud",
-        "request.link_created": "Creó un enlace",
-        "request.cancelled": "Canceló la solicitud",
-        "request.item_waived": "Cerró un documento sin recibirlo",
-        "portal.opened": "Abrió el enlace",
-        "portal.uploaded": "Subió un documento",
-        "reminder.sent": "Recordatorio automático"
+        "request_created": "Creó la solicitud",
+        "request_sent": "Envió la solicitud",
+        "request_link_created": "Creó un enlace",
+        "request_cancelled": "Canceló la solicitud",
+        "request_item_waived": "Cerró un documento sin recibirlo",
+        "portal_opened": "Abrió el enlace",
+        "portal_uploaded": "Subió un documento",
+        "reminder_sent": "Recordatorio automático"
       },
       "notFoundTitle": "No encontramos esta solicitud",
       "notFoundBody": "Puede que ya no exista o que la dirección esté incompleta."

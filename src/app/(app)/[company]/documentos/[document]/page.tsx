@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, FileText, Info } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, Info, ShieldAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,29 +7,34 @@ import type { ReactNode } from "react";
 
 import { documentHref, navHref, supplierHref } from "@/components/app-shell/nav-items";
 import { DocumentStateBadge } from "@/components/documents/document-state-badge";
+import { PriorityBadge } from "@/components/documents/priority-badge";
 import { ReviewForm } from "@/components/documents/review-form";
+import { requestHref } from "@/components/requests/hrefs";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
+import { StatusPill } from "@/components/status-pill";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
+import { canGiveFinalReview, GFSI_SCHEMES } from "@/domain/evidence";
+import { findProgram } from "@/domain/programs";
 import { isLocale, type Locale } from "@/i18n/config";
 import { getRequestContext } from "@/server/context";
 import { reviewDocumentAction } from "@/server/document-actions";
-import { type DocumentRow, filterDocuments } from "@/server/document-list";
-import { getDocument, getReviewPolicy, listDocuments } from "@/server/documents";
+import { DEFAULT_FILTERS, type DocumentRow, filterDocuments } from "@/server/document-list";
+import { getDocument, getReviewPolicy, type ImpactView, listDocuments } from "@/server/documents";
 
 type Props = PageProps<"/[company]/documentos/[document]">;
 
-async function typeName(code: string): Promise<string> {
+async function language(): Promise<Locale> {
   const locale = await getLocale();
-  const lang: Locale = isLocale(locale) ? locale : "es";
-  return findType(DEFAULT_CATALOG, code)?.name[lang] ?? code;
+  return isLocale(locale) ? locale : "es";
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { company, document } = await params;
   const doc = await getDocument(await getRequestContext(company), decodeURIComponent(document));
+  const lang = await language();
   return {
     title: doc
-      ? `${await typeName(doc.typeCode)} · ${doc.partyName}`
+      ? `${findType(DEFAULT_CATALOG, doc.typeCode)?.name[lang] ?? doc.typeCode} · ${doc.partyName}`
       : (await getTranslations("document"))("notFoundTitle"),
   };
 }
@@ -38,24 +43,31 @@ export default async function Page({ params }: Props) {
   const { company, document } = await params;
   const id = decodeURIComponent(document);
   const ctx = await getRequestContext(company);
-  const [doc, rows, t, format] = await Promise.all([
+  const [doc, rows, t, tList, tReq, format, lang, policy] = await Promise.all([
     getDocument(ctx, id),
     listDocuments(ctx),
     getTranslations("document"),
+    getTranslations("documents"),
+    getTranslations("requirements.name"),
     getFormatter(),
+    language(),
+    getReviewPolicy(ctx),
   ]);
   if (!doc) notFound();
 
-  const name = await typeName(doc.typeCode);
+  const name = findType(DEFAULT_CATALOG, doc.typeCode)?.name[lang] ?? doc.typeCode;
   const date = (iso: string) => format.dateTime(new Date(`${iso}T12:00:00Z`), { dateStyle: "medium" });
-  // The next document in the review queue this user can act on (not their own upload, if the
-  // company requires a second person).
-  const policy = await getReviewPolicy(ctx);
-  const next = filterDocuments(rows, { tab: "revisar", q: "" }).find(
-    (r) => r.id !== doc.id && (!policy.requireSecondPerson || r.uploadedBy !== ctx.actor.userId),
+  const usd = (n: number) => format.number(n, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  // The next document in the review queue, in queue order, that this person can decide.
+  const next = filterDocuments(rows, DEFAULT_FILTERS, ctx.today).find(
+    (r) =>
+      r.id !== doc.id &&
+      (!policy.requireSecondPerson || r.uploadedBy !== ctx.actor.userId) &&
+      (!r.highRisk || canGiveFinalReview(ctx.actor.role)),
   );
   const queueHref = navHref(company, "documentos");
   const fileHref = `${documentHref(company, doc.id)}/archivo`;
+  const pending = doc.state === "pending_review";
 
   const historyColumns: Column<DocumentRow>[] = [
     {
@@ -65,10 +77,10 @@ export default async function Page({ params }: Props) {
       cell: (v) => (
         <span className="inline-flex flex-wrap items-center gap-2">
           {v.id === doc.id ? (
-            <span>{date(v.issuedOn ?? v.receivedOn)}</span>
+            <span>{`${tList("version", { version: v.version })} · ${date(v.issuedOn ?? v.receivedOn)}`}</span>
           ) : (
             <Link href={documentHref(company, v.id)} className="font-semibold text-primary hover:underline">
-              {date(v.issuedOn ?? v.receivedOn)}
+              {`${tList("version", { version: v.version })} · ${date(v.issuedOn ?? v.receivedOn)}`}
             </Link>
           )}
           {v.state === "accepted" ? (
@@ -94,11 +106,31 @@ export default async function Page({ params }: Props) {
     { key: "reviewedBy", header: t("history.reviewedBy"), cell: (v) => v.reviewedByName ?? "—" },
   ];
 
+  const impactColumns: Column<ImpactView>[] = [
+    {
+      key: "requirement",
+      header: t("impact.requirement"),
+      primary: true,
+      cell: (x) => (
+        <span className="grid gap-0.5">
+          <span>{tReq(x.code)}</span>
+          <span className="text-xs font-normal text-muted-foreground">
+            {findProgram(x.program).name[lang]} · {t("impact.materials", { count: x.materials })}
+            {x.blocking ? ` · ${t("impact.blocking")}` : ""}
+          </span>
+        </span>
+      ),
+    },
+    { key: "now", header: t("impact.now"), cell: (x) => <StatusPill status={x.before} /> },
+    { key: "after", header: t("impact.after"), cell: (x) => <StatusPill status={x.after} /> },
+  ];
+
   const expiresNote = !doc.expires
     ? t("expiresNever")
     : doc.printedExpiry
       ? t("expiresPrinted")
       : t("expiresDefault", { months: doc.validityMonths ?? 12 });
+  const details = doc.verification?.details;
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -113,9 +145,11 @@ export default async function Page({ params }: Props) {
         <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">{name}</h1>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           <DocumentStateBadge state={doc.state} />
+          {pending ? <PriorityBadge priority={doc.priority} /> : null}
           <Link href={supplierHref(company, doc.partyId)} className="font-medium text-primary hover:underline">
             {doc.partyName}
           </Link>
+          {doc.site ? <span className="text-muted-foreground">· {doc.site}</span> : null}
           {doc.materialName ? <span className="text-muted-foreground">· {doc.materialName}</span> : null}
         </div>
       </div>
@@ -126,17 +160,41 @@ export default async function Page({ params }: Props) {
             aria-label={t("facts")}
             className="grid grid-cols-1 gap-x-6 gap-y-4 rounded-xl border bg-card p-4 text-sm sm:grid-cols-2"
           >
-            <Fact label={t("supplier")}>{doc.partyName}</Fact>
-            <Fact label={t("about")}>{doc.materialName ?? t("supplierItself")}</Fact>
+            <Fact label={t("from")}>{doc.partyName}</Fact>
+            {doc.site ? <Fact label={t("facility")}>{doc.site}</Fact> : null}
+            <Fact label={t("about")}>{doc.materialName ?? (doc.subjectKind === "site" ? doc.site : t("company"))}</Fact>
             {doc.lotCode ? <Fact label={t("lot")}>{doc.lotCode}</Fact> : null}
             <Fact label={t("issued")}>{doc.issuedOn ? date(doc.issuedOn) : t("notSet")}</Fact>
-            <Fact label={t("received")}>{date(doc.receivedOn)}</Fact>
+            <Fact label={t("received")}>
+              {date(doc.receivedOn)}
+              <span className="block text-xs font-normal text-muted-foreground">
+                {doc.receivedVia === "portal"
+                  ? tList("viaPortal", { name: doc.uploadedByName })
+                  : tList("viaTeam", { name: doc.uploadedByName })}
+              </span>
+            </Fact>
             <Fact label={t("expires")}>
               {doc.expires ? date(doc.expires) : "—"}
               <span className="block text-xs font-normal text-muted-foreground">{expiresNote}</span>
             </Fact>
-            <Fact label={t("uploadedBy")}>{doc.uploadedByName}</Fact>
+            <Fact label={t("requirements")}>
+              {doc.requirements.length ? doc.requirements.map((r) => tReq(r.code)).join(", ") : tList("noRequirement")}
+            </Fact>
+            {doc.file?.sha256 ? (
+              <Fact label={t("sha256")}>
+                <span className="font-mono text-xs break-all">{doc.file.sha256}</span>
+              </Fact>
+            ) : null}
           </dl>
+
+          {doc.requestItem ? (
+            <p className="flex flex-wrap gap-x-2 rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+              {t("fromRequest")}
+              <Link href={requestHref(company, doc.requestItem.requestId)} className="font-semibold hover:underline">
+                {t("viewRequest")}
+              </Link>
+            </p>
+          ) : null}
 
           {doc.file ? (
             <section aria-label={t("file")} className="grid gap-3 rounded-xl border bg-card p-4">
@@ -187,9 +245,36 @@ export default async function Page({ params }: Props) {
 
         <section className="grid content-start gap-4 rounded-xl border bg-card p-4 sm:p-5">
           <h2 className="text-lg font-semibold">{t("review.title")}</h2>
-          {doc.state === "pending_review" && doc.reviewDenial === null ? (
-            <ReviewForm action={reviewDocumentAction.bind(null, company, doc.id)} />
-          ) : doc.state === "pending_review" ? (
+          {pending && doc.highRisk ? <Notice icon={ShieldAlert}>{t("review.highRisk")}</Notice> : null}
+
+          {pending ? (
+            <div className="grid gap-2">
+              <h3 className="text-sm font-semibold">{t("impact.title")}</h3>
+              <p className="text-xs text-muted-foreground">{t("impact.hint")}</p>
+              {doc.impact.length ? (
+                <ResponsiveTable
+                  columns={impactColumns}
+                  rows={doc.impact}
+                  rowKey={(x) => `${x.code}-${x.program}`}
+                  caption={t("impact.caption")}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("impact.none")}</p>
+              )}
+            </div>
+          ) : null}
+
+          {pending && doc.reviewDenial === null ? (
+            <>
+              {doc.acceptDenial ? <Notice>{t(`denial.${doc.acceptDenial}`)}</Notice> : null}
+              <ReviewForm
+                action={reviewDocumentAction.bind(null, company, doc.id)}
+                detailsKind={doc.detailsKind}
+                canAccept={doc.acceptDenial === null}
+                minimum={doc.insurance.minimumUsd === null ? null : usd(doc.insurance.minimumUsd)}
+              />
+            </>
+          ) : pending ? (
             <Notice>{t(`denial.${doc.reviewDenial!}`)}</Notice>
           ) : (
             <div role="status" className="grid gap-2 text-sm">
@@ -207,6 +292,41 @@ export default async function Page({ params }: Props) {
                 <blockquote className="border-l-4 border-status-missing pl-3 text-muted-foreground">
                   {doc.rejectionReason}
                 </blockquote>
+              ) : null}
+              {doc.verification ? (
+                <div className="grid gap-1 border-t pt-3">
+                  <h3 className="font-semibold">{t("verified.title")}</h3>
+                  <p>{t("verified.checklist")}</p>
+                  {details?.kind === "certificate" ? (
+                    <>
+                      <p>
+                        {GFSI_SCHEMES.find((s) => s.code === details.scheme)?.name ?? details.scheme} ·{" "}
+                        {details.certificateNumber} · {details.issuingBody}
+                      </p>
+                      <p className="text-muted-foreground">
+                        {details.facility} · {details.scope}
+                      </p>
+                      <p>{doc.gfsiRecognized ? t("verified.gfsiRecognized") : t("verified.gfsiNotRecognized")}</p>
+                    </>
+                  ) : null}
+                  {details?.kind === "insurance" ? (
+                    <>
+                      <p>
+                        {details.insurer} · {details.policyNumber}
+                      </p>
+                      <p>{t("verified.coverage", { amount: usd(details.coverageUsd) })}</p>
+                      {doc.insurance.check ? (
+                        <p
+                          className={doc.insurance.check === "below" ? "font-semibold text-status-missing" : undefined}
+                        >
+                          {t(`verified.${doc.insurance.check}`, {
+                            minimum: doc.insurance.minimumUsd === null ? "" : usd(doc.insurance.minimumUsd),
+                          })}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           )}
@@ -257,10 +377,10 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function Notice({ children }: { children: ReactNode }) {
+function Notice({ children, icon: Icon = Info }: { children: ReactNode; icon?: typeof Info }) {
   return (
     <p className="flex gap-2 rounded-lg bg-secondary px-3 py-2 text-sm text-secondary-foreground">
-      <Info aria-hidden className="mt-0.5 size-4 shrink-0" />
+      <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
       {children}
     </p>
   );

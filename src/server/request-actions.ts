@@ -160,7 +160,9 @@ export async function portalUploadAction(
     revalidatePath(`/portal/${secret}`);
     return { status: "done" };
   }
-  return "errors" in outcome ? { status: "invalid", errors: outcome.errors } : { status: "denied", denial: outcome.denial };
+  return "errors" in outcome
+    ? { status: "invalid", errors: outcome.errors }
+    : { status: "denied", denial: outcome.denial };
 }
 
 /* Bell */

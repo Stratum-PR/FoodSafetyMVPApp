@@ -1193,14 +1193,14 @@
       "emailsEmpty": "No emails sent.",
       "activity": "Activity",
       "action": {
-        "request.created": "Created the request",
-        "request.sent": "Sent the request",
-        "request.link_created": "Created a link",
-        "request.cancelled": "Cancelled the request",
-        "request.item_waived": "Closed a document without receiving it",
-        "portal.opened": "Opened the link",
-        "portal.uploaded": "Uploaded a document",
-        "reminder.sent": "Automatic reminder"
+        "request_created": "Created the request",
+        "request_sent": "Sent the request",
+        "request_link_created": "Created a link",
+        "request_cancelled": "Cancelled the request",
+        "request_item_waived": "Closed a document without receiving it",
+        "portal_opened": "Opened the link",
+        "portal_uploaded": "Uploaded a document",
+        "reminder_sent": "Automatic reminder"
       },
       "notFoundTitle": "We couldn't find this request",
       "notFoundBody": "It may no longer exist, or the address is incomplete."
