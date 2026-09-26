@@ -36,6 +36,7 @@ describe("supplier filters", () => {
       q: "",
       type: "all",
       approval: "all",
+      stage: "all",
       attention: false,
       sort: "compliance",
       dir: "asc",
@@ -65,6 +66,25 @@ describe("supplier filters", () => {
   it("filters by approval and by pending documents", () => {
     expect(names(filterSuppliers(rows, parseFilters({ aprobacion: "pending" })))).toEqual(["Frutas Monte Claro"]);
     expect(names(filterSuppliers(rows, parseFilters({ pendientes: "1" })))).toEqual(["Frutas Monte Claro"]);
+  });
+
+  it("filters active suppliers (approved or conditional, not deactivated) and by stage", () => {
+    const more = [
+      ...rows,
+      row("Empaques Vega", { approval: "conditional" }),
+      row("Harinas Loma", { lifecycle: "inactive" }),
+      row("Sales Punta", { approval: "suspended", lifecycle: "suspended" }),
+    ];
+    expect(names(filterSuppliers(more, parseFilters({ estado: "active" })))).toEqual([
+      "Molinos Brisa Azul",
+      "Distribuidora Cañaveral",
+      "Empaques Vega",
+    ]);
+    expect(names(filterSuppliers(more, parseFilters({ estado: "inactive" })))).toEqual(["Harinas Loma"]);
+    expect(names(filterSuppliers(more, parseFilters({ estado: "suspended" })))).toEqual(["Sales Punta"]);
+    expect(parseFilters({ estado: "nope" }).stage).toBe("all");
+    expect(filtersQuery(parseFilters({ estado: "active" }))).toBe("?estado=active");
+    expect(hasFilters(parseFilters({ estado: "active" }))).toBe(true);
   });
 });
 

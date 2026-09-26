@@ -119,6 +119,33 @@ test("the panel summarizes compliance and expirations", async ({ page }) => {
   await expect(page.getByLabel("Solo con documentos pendientes")).toBeChecked();
 });
 
+test("the panel separates what needs action from the indicators", async ({ page }) => {
+  await page.goto(COMPANY);
+  await expect(page.getByRole("heading", { level: 2, name: "Para atender" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Indicadores" })).toBeVisible();
+  for (const card of [
+    "Renovación del registro FDA",
+    "Suspendidos con materiales activos",
+    "Materiales de alto riesgo con faltas",
+    "FSVP: falta el análisis de peligros",
+    "No conformidades (12 meses)",
+  ]) {
+    await expect(page.getByRole("heading", { name: card })).toBeVisible();
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expectNoSeriousA11yIssues(page);
+});
+
+test("the active suppliers tile opens the list of active suppliers", async ({ page }) => {
+  await page.goto(COMPANY);
+  const tile = page.getByRole("link", { name: /Suplidores activos/ });
+  const active = (await tile.locator("p.text-3xl").textContent())?.trim();
+  await tile.click();
+  await expect(page).toHaveURL(/suplidores\?estado=active/);
+  await expect(page.getByLabel("Estado")).toHaveValue("active");
+  await expect(page.getByText(new RegExp(`^${active} suplidores de \\d+$`))).toBeVisible();
+});
+
 test("the supplier list searches and filters from the URL", async ({ page }) => {
   await page.goto(`${COMPANY}/suplidores`);
   await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();

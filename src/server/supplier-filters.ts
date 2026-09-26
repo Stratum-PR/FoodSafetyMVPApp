@@ -1,15 +1,26 @@
+import { isActiveSupplier } from "@/domain/operations";
 import type { Approval, PartyType } from "@/domain/suppliers";
 
 import type { SupplierRow } from "./suppliers";
 
 /*
  * Supplier list filters and sort order. They live in the URL
- * (?q=&tipo=&aprobacion=&pendientes=1&orden=cumplimiento&dir=asc) so a list can be
+ * (?q=&tipo=&aprobacion=&estado=&pendientes=1&orden=cumplimiento&dir=asc) so a list can be
  * bookmarked or shared, and the page works without JavaScript.
  */
 
 export const TYPE_FILTERS = ["all", "manufacturer", "distributor"] as const;
 export const APPROVAL_FILTERS = ["all", "approved", "conditional", "pending", "suspended"] as const;
+/** active: approved or conditional and not deactivated (the panel's count). The rest are stages. */
+export const STAGE_FILTERS = [
+  "all",
+  "active",
+  "onboarding",
+  "verification",
+  "monitoring",
+  "suspended",
+  "inactive",
+] as const;
 
 export const SORT_KEYS = ["name", "type", "approval", "sources", "compliance"] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
@@ -31,6 +42,7 @@ export type SupplierFilters = {
   q: string;
   type: (typeof TYPE_FILTERS)[number];
   approval: (typeof APPROVAL_FILTERS)[number];
+  stage: (typeof STAGE_FILTERS)[number];
   /** Only suppliers with an expiring, expired or missing document. */
   attention: boolean;
   sort: SortKey;
@@ -54,6 +66,7 @@ export function parseFilters(params: Params): SupplierFilters {
     q: first(params.q).trim().slice(0, 100),
     type: oneOf(TYPE_FILTERS, first(params.tipo)),
     approval: oneOf(APPROVAL_FILTERS, first(params.aprobacion)),
+    stage: oneOf(STAGE_FILTERS, first(params.estado)),
     attention: first(params.pendientes) === "1",
     sort: sort ?? DEFAULT_SORT.key,
     dir: dir === "asc" || dir === "desc" ? dir : sort ? "asc" : DEFAULT_SORT.dir,
@@ -70,6 +83,7 @@ export function filtersQuery(f: SupplierFilters): string {
   if (f.q) p.set("q", f.q);
   if (f.type !== "all") p.set("tipo", f.type);
   if (f.approval !== "all") p.set("aprobacion", f.approval);
+  if (f.stage !== "all") p.set("estado", f.stage);
   if (f.attention) p.set("pendientes", "1");
   if (f.sort !== DEFAULT_SORT.key || f.dir !== DEFAULT_SORT.dir) {
     p.set("orden", SORT_PARAM[f.sort]);
@@ -85,7 +99,7 @@ export function withSort(f: SupplierFilters, key: SortKey): SupplierFilters {
 }
 
 export function hasFilters(f: SupplierFilters): boolean {
-  return f.q !== "" || f.type !== "all" || f.approval !== "all" || f.attention;
+  return f.q !== "" || f.type !== "all" || f.approval !== "all" || f.stage !== "all" || f.attention;
 }
 
 /** Lowercase without accents, so "cintron" finds "Cintrón". */
@@ -108,6 +122,8 @@ export function filterSuppliers<Row extends SupplierRow>(rows: Row[], f: Supplie
     // A party that is both counts as a manufacturer and as a distributor.
     if (f.type !== "all" && row.type !== f.type && row.type !== "both") return false;
     if (f.approval !== "all" && row.approval !== (f.approval satisfies Approval)) return false;
+    if (f.stage === "active" && !isActiveSupplier(row)) return false;
+    if (f.stage !== "all" && f.stage !== "active" && row.lifecycle !== f.stage) return false;
     if (f.attention && !needsAttention(row)) return false;
     return true;
   });

@@ -5,6 +5,20 @@ import { type ComplianceSummary, evaluateCompliance, resultsForParty, summarize 
 import type { RequirementResult } from "@/domain/status";
 import type { Approval, Lifecycle, PartyType } from "@/domain/suppliers";
 import { isForeign } from "@/domain/suppliers";
+import {
+  conditionsDue,
+  expiryOutlook,
+  type ExpiryOutlook,
+  fdaRenewalPeriod,
+  fdaRenewalsDue,
+  fsvpGaps,
+  highRiskGaps,
+  isActiveSupplier,
+  nonconformityOutlook,
+  reviewQueue,
+  suspendedWithActiveSources,
+} from "@/domain/operations";
+import type { Severity } from "@/domain/nonconformity";
 
 import { type RequestContext, requirePermission } from "./context";
 import { getSampleStore } from "./sample/store";
@@ -70,12 +84,28 @@ export type Attention = {
   expiresOn: string;
 };
 
+/** A supplier named on a panel card, with a short detail (a date, a count…). */
+export type NamedParty = { partyId: string; partyName: string };
+
+export type PanelOperations = {
+  expiry: ExpiryOutlook;
+  reviewQueue: { count: number; oldestDays: number | null };
+  conditionsDue: (NamedParty & { reviewBy: string; overdue: boolean })[];
+  nonconformities: { bySeverity: Record<Severity, number>; repeat: (NamedParty & { count: number })[] };
+  suspendedActive: (NamedParty & { activeSources: number })[];
+  highRisk: (NamedParty & { sourceId: string; materialName: string; gaps: number })[];
+  fsvp: NamedParty[];
+  fdaRenewal: { opensOn: string; closesOn: string; open: boolean; due: NamedParty[] };
+};
+
 export type PanelSummary = {
   compliance: ComplianceSummary;
-  suppliers: { total: number; pendingApproval: number; conditional: number };
+  /** active: approved or conditional, and not deactivated. */
+  suppliers: { active: number; pendingApproval: number; conditional: number };
   documentsToReview: number;
   /** Expired and soon-to-expire documents, most urgent first. */
   attention: Attention[];
+  operations: PanelOperations;
 };
 
 export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary> {
@@ -100,15 +130,38 @@ export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary
     })
     .sort((a, b) => a.expiresOn.localeCompare(b.expiresOn));
 
+  const named = <T extends { partyId: string }>(list: T[]): (T & NamedParty)[] =>
+    list.map((x) => ({ ...x, partyName: names.get(x.partyId) ?? "" }));
+  const materialNames = new Map(data.materials.map((m) => [m.id, m.name]));
+  const ncs = nonconformityOutlook(data.nonconformities ?? [], ctx.today);
+  const fda = fdaRenewalPeriod(ctx.today);
+  const queue = reviewQueue(data.documents, ctx.today);
+
   return {
     compliance: summarize(results),
     suppliers: {
-      total: data.parties.filter((p) => p.lifecycle !== "inactive").length,
+      active: data.parties.filter(isActiveSupplier).length,
       pendingApproval: data.parties.filter((p) => p.approval === "pending").length,
       conditional: data.parties.filter((p) => p.approval === "conditional").length,
     },
-    documentsToReview: data.documents.filter((d) => d.state === "pending_review").length,
+    documentsToReview: queue.count,
     attention,
+    operations: {
+      expiry: expiryOutlook(results, ctx.today),
+      reviewQueue: queue,
+      conditionsDue: named(conditionsDue(data.parties, ctx.today)),
+      nonconformities: { bySeverity: ncs.bySeverity, repeat: named(ncs.repeat) },
+      suspendedActive: named(suspendedWithActiveSources(data.parties, data.sources)),
+      highRisk: highRiskGaps(data.sources, results).map((x) => ({
+        partyId: x.manufacturerId,
+        partyName: names.get(x.manufacturerId) ?? "",
+        sourceId: x.sourceId,
+        materialName: materialNames.get(x.materialId) ?? "",
+        gaps: x.gaps,
+      })),
+      fsvp: named(fsvpGaps(results).map((partyId) => ({ partyId }))),
+      fdaRenewal: { ...fda, due: named(fdaRenewalsDue(results, fda.opensOn).map((partyId) => ({ partyId }))) },
+    },
   };
 }
 
