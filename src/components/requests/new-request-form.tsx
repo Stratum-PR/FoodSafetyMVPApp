@@ -103,26 +103,30 @@ export function NewRequestForm({
           {t("itemsHint")}
         </p>
         <ul className="grid gap-2">
-          {target.gaps.map((g) => (
-            <li key={g.key} className="rounded-lg border bg-card p-3">
-              <label className="flex items-start gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  name="key"
-                  value={g.key}
-                  defaultChecked={!g.requested && (checked.length ? checked.includes(g.key) : true)}
-                  disabled={g.requested}
-                  className="mt-0.5 size-4 accent-primary"
-                />
-                <span className="grid min-w-0 flex-1 gap-1">
-                  <span className="font-medium">{labels[g.key]?.title}</span>
-                  <span className="text-xs text-muted-foreground">{labels[g.key]?.detail}</span>
-                  <span className="flex flex-wrap items-center gap-2">
-                    <StatusPill status={g.status} />
-                    {g.requested ? <span className="text-xs font-semibold">{t("alreadyRequested")}</span> : null}
-                  </span>
+          {target.gaps.map((g, i) => (
+            <li key={g.key} className="flex items-start gap-3 rounded-lg border bg-card p-3 text-sm">
+              <input
+                id={`nr-key-${i}`}
+                type="checkbox"
+                name="key"
+                value={g.key}
+                defaultChecked={!g.requested && (checked.length ? checked.includes(g.key) : true)}
+                disabled={g.requested}
+                aria-describedby={`nr-key-${i}-detail`}
+                className="mt-0.5 size-4 accent-primary"
+              />
+              <span className="grid min-w-0 flex-1 gap-1">
+                <label htmlFor={`nr-key-${i}`} className="font-medium">
+                  {labels[g.key]?.title ?? g.key}
+                </label>
+                <span id={`nr-key-${i}-detail`} className="text-xs text-muted-foreground">
+                  {labels[g.key]?.detail}
                 </span>
-              </label>
+                <span className="flex flex-wrap items-center gap-2">
+                  <StatusPill status={g.status} />
+                  {g.requested ? <span className="text-xs font-semibold">{t("alreadyRequested")}</span> : null}
+                </span>
+              </span>
             </li>
           ))}
         </ul>

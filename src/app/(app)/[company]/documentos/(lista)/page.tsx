@@ -472,6 +472,7 @@ async function GapsView({
   const columns: Column<GapRow>[] = [
     {
       key: "requirement",
+      className: WRAP,
       header: t("gaps.col.requirement"),
       primary: true,
       cell: (g) => (
@@ -486,6 +487,7 @@ async function GapsView({
     },
     {
       key: "from",
+      className: WRAP,
       header: t("gaps.col.from"),
       cell: (g) => (
         <span className="grid gap-0.5">
@@ -496,7 +498,7 @@ async function GapsView({
         </span>
       ),
     },
-    { key: "appliesTo", header: t("gaps.col.appliesTo"), cell: (g) => g.materialName ?? g.site ?? t("company") },
+    { key: "appliesTo", className: WRAP, header: t("gaps.col.appliesTo"), cell: (g) => g.materialName ?? g.site ?? t("company") },
     { key: "status", header: t("gaps.col.status"), cell: (g) => <StatusPill status={g.status} /> },
     {
       key: "action",
