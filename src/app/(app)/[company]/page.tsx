@@ -11,11 +11,11 @@ import { sectionText } from "@/components/section-placeholder";
 import { StatusPill } from "@/components/status-pill";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
 import { daysBetween } from "@/domain/dates";
-import type { RequirementStatus } from "@/domain/status";
+import type { ObligationStatus } from "@/domain/obligations";
 import { isLocale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
-import { needsAttention } from "@/server/supplier-filters";
+import { needsAttention, sortSuppliers } from "@/server/supplier-filters";
 import { getPanelSummary, listSuppliers } from "@/server/suppliers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,12 +23,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const ATTENTION_LIMIT = 8;
-const STATUSES: RequirementStatus[] = ["current", "expiring", "expired", "missing"];
+/** The obligation states shown on the panel, worst last; waived and not-applicable are left out. */
+const STATUSES: ObligationStatus[] = ["current", "expiring", "awaiting_review", "expired", "rejected", "missing"];
 const TONE_TEXT = { current: "text-status-current", expiring: "text-status-expiring", missing: "text-status-missing" };
-const SEGMENT: Record<RequirementStatus, string> = {
+const SEGMENT: Partial<Record<ObligationStatus, string>> = {
   current: "bg-status-current",
   expiring: "bg-status-expiring",
+  awaiting_review: "bg-secondary-foreground/40",
   expired: "bg-status-missing",
+  rejected: "bg-status-missing/70",
   missing: "bg-status-missing/40",
 };
 
@@ -44,9 +47,17 @@ export default async function Page({ params }: PageProps<"/[company]">) {
     getLocale(),
   ]);
   const lang = isLocale(locale) ? locale : "es";
-  const { compliance } = summary;
-  const met = compliance.counts.current + compliance.counts.expiring;
-  const lowest = suppliers.filter((s) => s.lifecycle !== "inactive" && s.compliance.total > 0).slice(0, 5);
+  // The same count as the supplier list: met of applicable (waived and not-applicable left out).
+  const { requirements } = summary;
+  const percent = requirements.percent ?? 100;
+  const shown = STATUSES.reduce((n, s) => n + requirements.counts[s], 0);
+  const lowest = sortSuppliers(
+    suppliers.filter(
+      (s) => !["inactive", "rejected"].includes(s.summary.state) && s.summary.requirements.applicable > 0,
+    ),
+    "requirements",
+    "asc",
+  ).slice(0, 5);
   const pendingCount = suppliers.filter(needsAttention).length;
   const suppliersHref = navHref(company, "suplidores");
   // Noon UTC is the same calendar day in Puerto Rico.
@@ -59,10 +70,10 @@ export default async function Page({ params }: PageProps<"/[company]">) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="col-span-2 rounded-xl border bg-card p-4 lg:col-span-1">
           <p className="text-sm font-medium text-muted-foreground">{t("compliance")}</p>
-          <p className={cn("mt-1 text-4xl font-bold tabular-nums", TONE_TEXT[complianceTone(compliance.percent)])}>
-            {compliance.percent}%
+          <p className={cn("mt-1 text-4xl font-bold tabular-nums", TONE_TEXT[complianceTone(percent)])}>{percent}%</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("complianceHint", { met: requirements.met, total: requirements.applicable })}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("complianceHint", { met, total: compliance.total })}</p>
         </div>
         <Stat icon={Truck} label={t("activeSuppliers")} value={summary.suppliers.total} />
         <Stat
@@ -132,7 +143,7 @@ export default async function Page({ params }: PageProps<"/[company]">) {
                 <span
                   key={s}
                   className={SEGMENT[s]}
-                  style={{ width: `${(compliance.counts[s] / Math.max(compliance.total, 1)) * 100}%` }}
+                  style={{ width: `${(requirements.counts[s] / Math.max(shown, 1)) * 100}%` }}
                 />
               ))}
             </div>
@@ -142,7 +153,7 @@ export default async function Page({ params }: PageProps<"/[company]">) {
                   <dt>
                     <StatusPill status={s} />
                   </dt>
-                  <dd className="font-semibold tabular-nums">{compliance.counts[s]}</dd>
+                  <dd className="font-semibold tabular-nums">{requirements.counts[s]}</dd>
                 </div>
               ))}
             </dl>
@@ -158,7 +169,7 @@ export default async function Page({ params }: PageProps<"/[company]">) {
                   >
                     {s.name}
                   </Link>
-                  <ComplianceBar percent={s.compliance.percent} className="shrink-0" />
+                  <ComplianceBar percent={s.summary.requirements.percent ?? 100} className="shrink-0" />
                 </li>
               ))}
             </ul>

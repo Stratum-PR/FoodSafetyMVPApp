@@ -7,7 +7,13 @@ import type { IsoDate } from "@/domain/dates";
 import { AppError } from "@/domain/errors";
 import { DEFAULT_REVIEW_POLICY, type ReviewPolicy } from "@/domain/permissions";
 import { checkCanReview, type ReviewDecision, type ReviewDenial, reviewDocument } from "@/domain/review";
-import type { DocumentSubject, FileRef, MaterialKind, SupplierDocument } from "@/domain/suppliers";
+import {
+  type DocumentSubject,
+  type FileRef,
+  involves,
+  type MaterialKind,
+  type SupplierDocument,
+} from "@/domain/suppliers";
 import { checkUpload, MAX_FILE_BYTES, safeFileName, type UploadError, type UploadField } from "@/domain/upload";
 import { documentVersions } from "@/domain/versions";
 
@@ -122,6 +128,8 @@ export async function decideDocument(
 export type UploadTarget = {
   id: string;
   name: string;
+  /** The supplier's plants and warehouses, to file facility documents (certificates, FDA registration) on. */
+  sites: { siteId: string; name: string | null; city: string }[];
   /** The materials this supplier makes or distributes, to file material-level documents on. */
   materials: { sourceId: string; name: string; code: string; kind: MaterialKind; role: "makes" | "sells" }[];
 };
@@ -135,8 +143,9 @@ export async function listUploadTargets(ctx: RequestContext): Promise<UploadTarg
     .map((p) => ({
       id: p.id,
       name: p.name,
+      sites: store.sites.filter((s) => s.partyId === p.id).map((s) => ({ siteId: s.id, name: s.name, city: s.city })),
       materials: store.sources
-        .filter((s) => s.status !== "rejected" && (s.manufacturerId === p.id || s.distributorId === p.id))
+        .filter((s) => s.qualification.status !== "rejected" && involves(s, p.id))
         .map((s) => {
           const m = materials.get(s.materialId)!;
           return {
@@ -154,7 +163,7 @@ export async function listUploadTargets(ctx: RequestContext): Promise<UploadTarg
 
 export type UploadRequest = {
   partyId: string;
-  /** "party" for the supplier's own documents, or a source id for a material's. */
+  /** "party" for the supplier's own documents, a site id for a facility's, or a source id for a material's. */
   about: string;
   typeCode: string;
   lotCode: string;
@@ -175,10 +184,10 @@ export async function uploadDocument(ctx: RequestContext, req: UploadRequest): P
   let subject: DocumentSubject | null = null;
   let materialKind: MaterialKind | null = null;
   if (party && req.about === "party") subject = { kind: "party", partyId: party.id };
-  else if (party) {
-    const source = store.sources.find(
-      (s) => s.id === req.about && (s.manufacturerId === party.id || s.distributorId === party.id),
-    );
+  else if (party && store.sites.some((s) => s.id === req.about && s.partyId === party.id)) {
+    subject = { kind: "site", siteId: req.about };
+  } else if (party) {
+    const source = store.sources.find((s) => s.id === req.about && involves(s, party.id));
     if (source) {
       subject = { kind: "source", sourceId: source.id };
       materialKind = store.materials.find((m) => m.id === source.materialId)?.kind ?? null;

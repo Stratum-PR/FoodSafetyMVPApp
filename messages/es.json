@@ -37,7 +37,11 @@
     "current": "Vigente",
     "expiring": "Por vencer",
     "missing": "Falta",
-    "expired": "Vencido"
+    "expired": "Vencido",
+    "awaiting_review": "Por revisar",
+    "rejected": "Rechazado",
+    "waived": "Dispensado",
+    "not_applicable": "No aplica"
   },
   "pages": {
     "panel": {
@@ -136,13 +140,17 @@
     "attention": "Solo con documentos pendientes",
     "apply": "Aplicar",
     "clear": "Quitar filtros",
-    "caption": "Suplidores y su cumplimiento",
+    "caption": "Suplidores, su aprobación y sus requisitos",
     "col": {
       "name": "Suplidor",
-      "type": "Tipo",
       "approval": "Aprobación",
-      "sources": "Materiales activos",
-      "compliance": "Cumplimiento"
+      "risk": "Riesgo",
+      "materials": "Materiales",
+      "certification": "Certificación",
+      "requirements": "Requisitos",
+      "fsma204": "FSMA 204",
+      "issues": "No conformidades",
+      "nextAction": "Próximo paso"
     },
     "foreign": "Extranjero · FSVP",
     "inactive": "Inactivo",
@@ -156,7 +164,22 @@
     "sortBy": "Ordenar por",
     "sortDir": "Orden",
     "asc": "Ascendente",
-    "desc": "Descendente"
+    "desc": "Descendente",
+    "expiringFilter": "Solo con algo por vencer en 30 días",
+    "riskFilter": "Riesgo",
+    "allRisks": "Todos",
+    "reviewBy": "Revisar antes del {date}",
+    "decidedOn": "Decidido el {date}",
+    "materialsActive": "{count, plural, one {# activo} other {# activos}}",
+    "materialsQualified": "{qualified} aprobados · {notAssessed} sin evaluar",
+    "sitesVerified": "{verified} de {required} instalaciones",
+    "issuesOpen": "{count, plural, one {# abierta} other {# abiertas}}",
+    "issuesNone": "Ninguna",
+    "requirementsHint": "Requisitos: vigentes de los que aplican a lo que se le compra hoy. No cuenta los dispensados ni los que no aplican. Materiales activos quiere decir que se compran, no que estén aprobados.",
+    "pagination": "Páginas de la lista",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {page} de {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturero",
@@ -177,7 +200,9 @@
     "warnings": {
       "missing_documents": "{count, plural, one {Le falta o tiene vencido # documento.} other {Le faltan o tiene vencidos # documentos.}} Una aprobación condicional puede ser más apropiada.",
       "nonconformities": "{count} no conformidades en los últimos 12 meses. Revisa si debe seguir aprobado; la decisión es tuya.",
-      "conditions_overdue": "Las condiciones debían revisarse el {date}."
+      "conditions_overdue": "Las condiciones debían revisarse el {date}.",
+      "blocking": "{count, plural, one {Un requisito bloqueante no está cumplido.} other {# requisitos bloqueantes no están cumplidos.}} La aprobación completa espera por ellos.",
+      "review_overdue": "La aprobación debía revisarse el {date}."
     },
     "decide": "Cambiar estado",
     "decision": "Decisión",
@@ -187,15 +212,17 @@
       "approve_conditional": "Aprobar con condiciones",
       "suspend": "Suspender",
       "deactivate": "Desactivar",
-      "reactivate": "Reactivar"
+      "reactivate": "Reactivar",
+      "reject": "Rechazar (descalificar)"
     },
     "actionHints": {
       "start_verification": "Sus documentos se están revisando.",
-      "approve": "Queda en la lista de suplidores aprobados.",
+      "approve": "Queda en la lista de suplidores aprobados, con su próxima revisión.",
       "approve_conditional": "Aprobado mientras cumple las condiciones, con una fecha de revisión.",
       "suspend": "No se le compra hasta que se vuelva a aprobar.",
       "deactivate": "Ya no se le compra. Su historial se conserva.",
-      "reactivate": "Vuelve a la etapa en que estaba."
+      "reactivate": "Vuelve a la etapa en que estaba.",
+      "reject": "No se aprueba y no se le compra. Queda en el historial; para reconsiderarlo, se reactiva y empieza de nuevo."
     },
     "reason": "Motivo",
     "reasonRequired": "Motivo (obligatorio)",
@@ -203,7 +230,7 @@
     "conditionsLabel": "Condiciones",
     "conditionsHint": "Qué debe cumplir el suplidor, por ejemplo enviar el certificado GFSI vigente.",
     "reviewByLabel": "Fecha de revisión",
-    "reviewByHint": "Dentro de los próximos 12 meses.",
+    "reviewByHint": "La próxima revisión de la aprobación, dentro de 3 años.",
     "submit": "Guardar decisión",
     "saving": "Guardando…",
     "errors": {
@@ -213,7 +240,10 @@
       "too_long": "Máximo 1,000 caracteres.",
       "invalid_date": "La fecha no es válida.",
       "date_not_future": "Debe ser una fecha futura.",
-      "date_too_far": "Debe ser dentro de los próximos 12 meses."
+      "date_too_far": "Debe ser dentro de los próximos 12 meses.",
+      "invalid": "Escoge una opción válida.",
+      "blocked": "Hay requisitos bloqueantes sin cumplir. Apruébalo con condiciones o espera a que se cumplan.",
+      "after_review": "Debe ser antes de la fecha de revisión."
     },
     "denial": {
       "no_permission": "Tu rol puede ver el estado del suplidor, pero no aprobarlo.",
@@ -231,7 +261,38 @@
       "by": "Por",
       "detail": "Detalle"
     },
-    "complianceAt": "Cumplimiento al decidir: {percent}%"
+    "complianceAt": "Cumplimiento al decidir: {percent}%",
+    "rejected": "Rechazado",
+    "blockedHint": "{count, plural, one {Un requisito bloqueante falta o no está aceptado.} other {# requisitos bloqueantes faltan o no están aceptados.}} Solo se puede aprobar con condiciones.",
+    "basisLabel": "En qué se basa la decisión",
+    "basisHint": "Marca al menos una.",
+    "basis": {
+      "questionnaire": "Cuestionario",
+      "certification": "Certificación",
+      "audit": "Auditoría",
+      "specification": "Especificación",
+      "testing": "Análisis o pruebas",
+      "performance": "Desempeño en entregas",
+      "history": "Historial con la empresa"
+    },
+    "basisShort": "Base: {list}",
+    "reviewByHintConditional": "Cuándo se revisan las condiciones, dentro de 12 meses.",
+    "ownerLabel": "Responsable de darle seguimiento",
+    "ownerPlaceholder": "Escoge una persona",
+    "effectiveOnLabel": "Vigente desde",
+    "scopeLabel": "Materiales permitidos",
+    "scopeHint": "Si no marcas ninguno, aplica a todo lo que se le compra.",
+    "scopeAll": "Todo lo que se le compra",
+    "notBought": "no se compra ahora",
+    "restrictionsLabel": "Restricciones al recibir",
+    "restrictionsNone": "Ninguna",
+    "restrictions": {
+      "coa_every_lot": "Pedir y revisar el COA de cada lote",
+      "inspect_every_lot": "Inspeccionar cada lote al recibir",
+      "no_new_materials": "No añadir materiales nuevos mientras dure"
+    },
+    "warningsLabel": "Avisos",
+    "requirementsAt": "Requisitos al decidir: {met} de {applicable}"
   },
   "panel": {
     "compliance": "Cumplimiento",
@@ -283,7 +344,7 @@
       "packaging": "Empaque"
     },
     "materials": "Materiales",
-    "materialsHint": "Cada material aprobado con este suplidor y los documentos que pide.",
+    "materialsHint": "Cada material que se le compra, en qué instalación, si se compra hoy y su aprobación de inocuidad, por separado.",
     "noMaterials": "Este suplidor no tiene materiales aprobados.",
     "makes": "Lo fabrica",
     "sells": "Lo distribuye",
@@ -299,7 +360,21 @@
     "risk": {
       "low": "Riesgo bajo",
       "medium": "Riesgo medio",
-      "high": "Riesgo alto"
+      "high": "Riesgo alto",
+      "title": "Riesgo del suplidor",
+      "hint": "Lo evalúa una persona: los factores sugieren, pero la calificación y el porqué son suyos.",
+      "by": "Versión {version}, por {name} el {date}",
+      "factor": {
+        "material_hazard": "Peligro del material",
+        "origin": "Origen",
+        "certification": "Certificación",
+        "history": "Historial",
+        "allergens": "Alérgenos"
+      },
+      "suggested": "La política {policy} sugería: {rating}",
+      "nextReview": "Próxima evaluación: {date}",
+      "none": "No evaluado. Nadie ha evaluado el riesgo de este suplidor todavía.",
+      "materialNote": "El riesgo de cada material se ve aparte, en Materiales."
     },
     "kind": {
       "ingredient": "Ingrediente",
@@ -348,6 +423,169 @@
       "upload": "subir",
       "legend": "Leyenda",
       "inactive": "{count, plural, one {# material ofrecido} other {# materiales ofrecidos}} sin compra activa: no se le exigen documentos hasta la primera orden."
+    },
+    "legacySite": "Ubicación registrada",
+    "direction": {
+      "request": "Le pedimos documentos",
+      "deliver": "Le entregamos documentos"
+    },
+    "header": {
+      "label": "Resumen del suplidor",
+      "approval": "Aprobación",
+      "reviewBy": "Revisar antes del {date}",
+      "risk": "Riesgo",
+      "assessedOn": "Evaluado el {date}",
+      "requirements": "Requisitos",
+      "certification": "Certificación",
+      "sitesVerified": "{verified} de {required} instalaciones",
+      "fsma204": "FSMA 204",
+      "issues": "No conformidades abiertas",
+      "issuesHint": "{serious} mayores o críticas",
+      "nextAction": "Próximo paso:"
+    },
+    "tabs": {
+      "label": "Secciones del suplidor",
+      "resumen": "Resumen",
+      "instalaciones": "Instalaciones",
+      "materiales": "Materiales",
+      "documentos": "Documentos",
+      "incidencias": "No conformidades",
+      "historial": "Historial"
+    },
+    "overview": {
+      "company": "La empresa",
+      "roles": "Rol",
+      "direction": "Relación",
+      "sites": "Instalaciones",
+      "sitesCount": "{count, plural, one {# instalación} other {# instalaciones}}",
+      "fsvp": "FSVP",
+      "fsvpYes": "Sí: manufacturero fuera de EE. UU.",
+      "fsvpNo": "No",
+      "contacts": "Contactos",
+      "contactsHint": "Su idioma decide el idioma de los correos y las solicitudes.",
+      "primary": "Principal",
+      "noContacts": "No hay contactos registrados.",
+      "blocking": "Lo que bloquea la aprobación",
+      "blockingHint": "Requisitos que la empresa marcó como bloqueantes. Mientras falten, solo se puede aprobar con condiciones.",
+      "noBlocking": "Nada bloquea la aprobación de este suplidor."
+    },
+    "contactRole": {
+      "food_safety": "Inocuidad",
+      "regulatory": "Asuntos regulatorios",
+      "sales": "Ventas",
+      "accounts": "Cuentas"
+    },
+    "language": {
+      "es": "Español",
+      "en": "Inglés"
+    },
+    "fsma": {
+      "title": "FSMA 204 (trazabilidad)",
+      "hint": "Si la regla de trazabilidad aplica a lo que este suplidor envía. Lo decide una persona, con su razón.",
+      "by": "Por {name} el {date}",
+      "exemption": "Exención: {text}",
+      "none": "No evaluado.",
+      "hints": {
+        "ftl_materials": "Según los materiales, se le compra algo que está en la Lista de Trazabilidad de Alimentos.",
+        "no_ftl_materials": "Según los materiales, nada de lo que se le compra está en la Lista de Trazabilidad.",
+        "materials_not_checked": "Hay materiales que nadie ha comparado con la Lista de Trazabilidad."
+      },
+      "later": "La captura por lote (CTE y KDE) llega en una fase posterior; aquí no hay puntuación de preparación."
+    },
+    "facilities": {
+      "title": "Instalaciones",
+      "hint": "Plantas y almacenes del suplidor. Los certificados son de cada instalación: el de una planta no cubre otra.",
+      "legacyName": "{city} (ubicación registrada)",
+      "kindUnknown": "Tipo sin registrar",
+      "legacy": "creada de la ubicación anterior del suplidor",
+      "address": "Dirección",
+      "gln": "GLN (GS1)",
+      "glnNone": "Sin GLN",
+      "certificate": "Certificado",
+      "validThrough": "Vigente hasta el {date}",
+      "open": "Ver certificado",
+      "noCertificate": "Ninguno aceptado",
+      "scheme": "Esquema",
+      "scope": "Alcance",
+      "issuingBody": "Organismo certificador",
+      "number": "Número",
+      "auditDate": "Fecha de auditoría",
+      "verified": "Verificación",
+      "directoryChecked": "Confirmado en el directorio del esquema; aceptado el {date}",
+      "directoryCheckedNoDate": "Confirmado en el directorio del esquema",
+      "notVerified": "No confirmado en el directorio",
+      "pdfOnly": "Hay un certificado, pero nadie ha registrado sus datos ni lo ha confirmado en el directorio del esquema. Un PDF solo no certifica al suplidor.",
+      "requirements": "Requisitos de {site}",
+      "nothingBought": "No se le compra nada de esta instalación ahora, así que no tiene requisitos."
+    },
+    "siteKind": {
+      "plant": "Planta",
+      "warehouse": "Almacén",
+      "distribution_center": "Centro de distribución",
+      "farm": "Finca",
+      "office": "Oficina"
+    },
+    "scheme": {
+      "sqf": "SQF",
+      "brcgs": "BRCGS",
+      "fssc22000": "FSSC 22000",
+      "ifs": "IFS",
+      "globalgap": "GLOBALG.A.P. IFA",
+      "primusgfs": "PrimusGFS",
+      "canadagap": "CanadaGAP",
+      "gsa_bap": "GSA / BAP",
+      "other": "Otro"
+    },
+    "materialsTab": {
+      "material": "Material",
+      "site": "Instalación y ruta",
+      "commercial": "Compra",
+      "qualification": "Aprobación del material",
+      "decided": "{name}, {date}",
+      "materialRisk": "Riesgo del material",
+      "controls": "Especificación y COA",
+      "spec": "Especificación {ref}",
+      "noSpec": "Sin especificación registrada"
+    },
+    "commercial": {
+      "active": "Se compra",
+      "inactive": "No se compra"
+    },
+    "qualification": {
+      "not_assessed": "No evaluado",
+      "pending": "En evaluación",
+      "approved": "Aprobado",
+      "conditional": "Condicional",
+      "suspended": "Suspendido",
+      "rejected": "Rechazado"
+    },
+    "coaPolicy": {
+      "not_set": "COA: sin política",
+      "every_lot": "COA en cada lote",
+      "periodic": "COA periódico",
+      "not_required": "COA no requerido"
+    },
+    "documentsTab": {
+      "summary": "{pending, plural, =0 {Nada por revisar} one {# documento por revisar} other {# documentos por revisar}} · {open, plural, =0 {ningún requisito pendiente} one {# requisito pendiente} other {# requisitos pendientes}}.",
+      "workspace": "Ir a Documentos",
+      "blocking": "Requisitos que bloquean la aprobación",
+      "requirements": "Requisitos",
+      "requirementsHint": "Qué se le pide, para qué instalación o material, por qué aplica y en qué programa. Solo cuenta la evidencia revisada y aceptada."
+    },
+    "history": {
+      "title": "Historial",
+      "hint": "Todo lo registrado sobre este suplidor, lo más reciente primero. Nada se edita ni se borra.",
+      "approval": "Aprobación: {action}",
+      "risk": "Riesgo evaluado (versión {version}): {rating}",
+      "policy": "política {version}",
+      "fsma": "FSMA 204: {decision}",
+      "waived": "Requisito dispensado hasta el {until}",
+      "notApplicable": "Requisito marcado como no aplica",
+      "nonconformity": "No conformidad registrada",
+      "nonconformityClosed": "No conformidad cerrada",
+      "document": "{type}: {state}",
+      "by": "Por {name}",
+      "auditNote": "Con datos de ejemplo este historial vive en memoria. El registro de auditoría encadenado (cada entrada con el hash de la anterior) llega con la base de datos."
     }
   },
   "lifecycle": {
@@ -498,7 +736,10 @@
       "file_empty": "El archivo está vacío.",
       "no_permission": "Tu rol no puede subir documentos.",
       "not_found": "No encontramos esta empresa."
-    }
+    },
+    "aboutSites": "Instalaciones",
+    "aboutMaterials": "Materiales",
+    "legacySite": "Ubicación registrada"
   },
   "nonconformities": {
     "title": "No conformidades",
@@ -510,7 +751,8 @@
       "severity": "Gravedad",
       "description": "Descripción",
       "lot": "Lote",
-      "by": "Registrada por"
+      "by": "Registrada por",
+      "status": "Estado"
     },
     "severity": {
       "minor": "Menor",
@@ -536,6 +778,130 @@
       "invalid": "Escoge una opción válida.",
       "no_permission": "Tu rol no puede registrar no conformidades.",
       "not_found": "No encontramos este suplidor."
+    },
+    "open": "Abierta",
+    "closedBy": "Cerrada por {name} el {date}",
+    "openCount": "{count, plural, =0 {Ninguna abierta} one {# abierta} other {# abiertas}}",
+    "close": "Cerrar",
+    "closeNote": "Qué se hizo",
+    "closeSubmit": "Cerrar no conformidad",
+    "closeErrors": {
+      "already_closed": "Ya estaba cerrada.",
+      "required": "Escribe qué se hizo.",
+      "too_short": "Escribe al menos 5 caracteres.",
+      "too_long": "Es demasiado largo."
+    },
+    "capaLater": "El seguimiento completo (causa, acciones correctivas y verificación) llega con el módulo de hallazgos y CAPA."
+  },
+  "approvalState": {
+    "pending": "Pendiente",
+    "under_verification": "En verificación",
+    "approved": "Aprobado",
+    "conditional": "Condicional",
+    "suspended": "Suspendido",
+    "rejected": "Rechazado",
+    "inactive": "Inactivo"
+  },
+  "risk": {
+    "low": "Bajo",
+    "medium": "Medio",
+    "high": "Alto",
+    "not_assessed": "No evaluado"
+  },
+  "certification": {
+    "status": {
+      "verified": "Verificada",
+      "expiring": "Por vencer",
+      "expired": "Vencida",
+      "pending_verification": "Por verificar",
+      "audit_only": "Auditoría en sitio",
+      "missing": "Falta",
+      "not_assessed": "No evaluada"
     }
+  },
+  "fsma204": {
+    "status": {
+      "applicable": "Aplica",
+      "not_applicable": "No aplica",
+      "exempt": "Exento",
+      "not_assessed": "No evaluado"
+    }
+  },
+  "requirements": {
+    "none": "Sin requisitos: no se le compra nada ahora",
+    "met": "{met} de {applicable} vigentes",
+    "missing": "{count, plural, one {# falta} other {# faltan}}",
+    "expired": "{count, plural, one {# vencido} other {# vencidos}}",
+    "rejected": "{count, plural, one {# rechazado} other {# rechazados}}",
+    "awaiting": "{count} por revisar",
+    "expiring": "{count} por vencer",
+    "waived": "{count, plural, one {# dispensado} other {# dispensados}}",
+    "blocking": "{count, plural, one {# bloquea la aprobación} other {# bloquean la aprobación}}",
+    "allCurrent": "Todo al día",
+    "or": "o",
+    "legacySite": "{city} (ubicación registrada)",
+    "scope": {
+      "party": "El suplidor",
+      "site": "Instalación: {site}",
+      "source": "Material: {material}"
+    },
+    "andMore": " y {count} más",
+    "becauseMaterials": "Por: {list}",
+    "because": {
+      "manufacturer": "Fabrica lo que compras",
+      "distributor": "Distribuye lo que compras",
+      "vendor": "Le compras directamente",
+      "fsvp": "Manufacturero extranjero: FSVP",
+      "ingredient": "Ingrediente que compras",
+      "packaging": "Empaque que compras"
+    },
+    "col": {
+      "requirement": "Requisito",
+      "program": "Programa",
+      "scope": "Para",
+      "because": "Aplica porque",
+      "priority": "Prioridad",
+      "status": "Estado",
+      "dates": "Fechas",
+      "action": "Acción"
+    },
+    "severity": {
+      "critical": "Crítico",
+      "major": "Mayor",
+      "minor": "Menor"
+    },
+    "blockingTag": "Bloquea la aprobación",
+    "waivedUntil": "Hasta el {date}.",
+    "validThrough": "Vigente hasta el {date}",
+    "neverExpires": "No vence",
+    "reviewedOn": "Revisado el {date}",
+    "action": {
+      "review": "Revisar",
+      "evidence": "Ver evidencia"
+    },
+    "name": {
+      "facility_certification": "Certificación o auditoría de la instalación",
+      "questionnaire": "Cuestionario de suplidor",
+      "facility_registration": "Registro de la instalación ante la FDA",
+      "fsvp_hazard_analysis": "Análisis de peligros (FSVP)",
+      "guarantee_letter": "Carta de garantía continua",
+      "insurance": "Certificado de seguro",
+      "specification": "Especificación del material",
+      "allergen_statement": "Declaración de alérgenos",
+      "food_contact": "Cumplimiento para contacto con alimentos"
+    }
+  },
+  "nextAction": {
+    "none": "Nada pendiente",
+    "conditions_overdue": "Revisar las condiciones (vencieron el {date})",
+    "review_overdue": "Revisar la aprobación (tocaba el {date})",
+    "blocking_gap": "{count, plural, one {Resolver el requisito que bloquea} other {Resolver # requisitos que bloquean}}",
+    "review_document": "{count, plural, one {Revisar el documento recibido} other {Revisar # documentos recibidos}}",
+    "open_issue": "{count, plural, one {Atender la no conformidad abierta} other {Atender # no conformidades abiertas}}",
+    "gap": "{count, plural, one {Pedir el requisito que falta} other {Pedir # requisitos pendientes}}",
+    "decide_approval": "Decidir la aprobación",
+    "assess_risk": "Evaluar el riesgo",
+    "assess_fsma204": "Evaluar si aplica FSMA 204",
+    "expiring": "{count, plural, one {Renovar el que vence pronto} other {Renovar # que vencen pronto}}"
   }
 }

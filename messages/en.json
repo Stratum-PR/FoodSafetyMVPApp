@@ -37,7 +37,11 @@
     "current": "Current",
     "expiring": "Expiring",
     "missing": "Missing",
-    "expired": "Expired"
+    "expired": "Expired",
+    "awaiting_review": "Awaiting review",
+    "rejected": "Rejected",
+    "waived": "Waived",
+    "not_applicable": "Not applicable"
   },
   "pages": {
     "panel": {
@@ -136,13 +140,17 @@
     "attention": "Only with pending documents",
     "apply": "Apply",
     "clear": "Clear filters",
-    "caption": "Suppliers and their compliance",
+    "caption": "Suppliers, their approval and requirements",
     "col": {
       "name": "Supplier",
-      "type": "Type",
       "approval": "Approval",
-      "sources": "Active materials",
-      "compliance": "Compliance"
+      "risk": "Risk",
+      "materials": "Materials",
+      "certification": "Certification",
+      "requirements": "Requirements",
+      "fsma204": "FSMA 204",
+      "issues": "Nonconformities",
+      "nextAction": "Next step"
     },
     "foreign": "Foreign · FSVP",
     "inactive": "Inactive",
@@ -156,7 +164,22 @@
     "sortBy": "Sort by",
     "sortDir": "Order",
     "asc": "Ascending",
-    "desc": "Descending"
+    "desc": "Descending",
+    "expiringFilter": "Only with something expiring in 30 days",
+    "riskFilter": "Risk",
+    "allRisks": "All",
+    "reviewBy": "Review by {date}",
+    "decidedOn": "Decided {date}",
+    "materialsActive": "{count} active",
+    "materialsQualified": "{qualified} approved · {notAssessed} not assessed",
+    "sitesVerified": "{verified} of {required} facilities",
+    "issuesOpen": "{count} open",
+    "issuesNone": "None",
+    "requirementsHint": "Requirements: current out of those that apply to what is bought today. Waived and not-applicable ones aren't counted. Active materials means they're bought, not that they're approved.",
+    "pagination": "List pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturer",
@@ -177,7 +200,9 @@
     "warnings": {
       "missing_documents": "{count, plural, one {# document is missing or expired.} other {# documents are missing or expired.}} A conditional approval may be more appropriate.",
       "nonconformities": "{count} nonconformities in the last 12 months. Check whether it should stay approved; the decision is yours.",
-      "conditions_overdue": "The conditions were due for review on {date}."
+      "conditions_overdue": "The conditions were due for review on {date}.",
+      "blocking": "{count, plural, one {A blocking requirement isn't met.} other {# blocking requirements aren't met.}} Full approval waits for them.",
+      "review_overdue": "The approval was due for review on {date}."
     },
     "decide": "Change status",
     "decision": "Decision",
@@ -187,15 +212,17 @@
       "approve_conditional": "Approve with conditions",
       "suspend": "Suspend",
       "deactivate": "Deactivate",
-      "reactivate": "Reactivate"
+      "reactivate": "Reactivate",
+      "reject": "Reject (disqualify)"
     },
     "actionHints": {
       "start_verification": "Its documents are being reviewed.",
-      "approve": "It goes on the approved supplier list.",
+      "approve": "On the approved supplier list, with its next review.",
       "approve_conditional": "Approved while it meets the conditions, with a review date.",
       "suspend": "Nothing is bought from it until it's approved again.",
       "deactivate": "Nothing is bought from it anymore. Its history is kept.",
-      "reactivate": "It goes back to the stage it was in."
+      "reactivate": "It goes back to the stage it was in.",
+      "reject": "Not approved and not bought from. It stays in the history; to reconsider, reactivate and start over."
     },
     "reason": "Reason",
     "reasonRequired": "Reason (required)",
@@ -203,7 +230,7 @@
     "conditionsLabel": "Conditions",
     "conditionsHint": "What the supplier must do, for example send its current GFSI certificate.",
     "reviewByLabel": "Review date",
-    "reviewByHint": "Within the next 12 months.",
+    "reviewByHint": "The next review of the approval, within 3 years.",
     "submit": "Save decision",
     "saving": "Saving…",
     "errors": {
@@ -213,7 +240,10 @@
       "too_long": "1,000 characters at most.",
       "invalid_date": "The date isn't valid.",
       "date_not_future": "Must be a future date.",
-      "date_too_far": "Must be within the next 12 months."
+      "date_too_far": "Must be within the next 12 months.",
+      "invalid": "Choose a valid option.",
+      "blocked": "Blocking requirements aren't met. Approve with conditions or wait until they are.",
+      "after_review": "Must be before the review date."
     },
     "denial": {
       "no_permission": "Your role can see the supplier's status but can't approve it.",
@@ -231,7 +261,38 @@
       "by": "By",
       "detail": "Detail"
     },
-    "complianceAt": "Compliance when decided: {percent}%"
+    "complianceAt": "Compliance when decided: {percent}%",
+    "rejected": "Rejected",
+    "blockedHint": "{count, plural, one {A blocking requirement is missing or not accepted.} other {# blocking requirements are missing or not accepted.}} Only a conditional approval is possible.",
+    "basisLabel": "What the decision rests on",
+    "basisHint": "Tick at least one.",
+    "basis": {
+      "questionnaire": "Questionnaire",
+      "certification": "Certification",
+      "audit": "Audit",
+      "specification": "Specification",
+      "testing": "Testing",
+      "performance": "Delivery performance",
+      "history": "History with the company"
+    },
+    "basisShort": "Basis: {list}",
+    "reviewByHintConditional": "When the conditions are reviewed, within 12 months.",
+    "ownerLabel": "Who follows up",
+    "ownerPlaceholder": "Choose a person",
+    "effectiveOnLabel": "Effective from",
+    "scopeLabel": "Allowed materials",
+    "scopeHint": "If you tick none, it covers everything bought from them.",
+    "scopeAll": "Everything bought from them",
+    "notBought": "not bought now",
+    "restrictionsLabel": "Receiving restrictions",
+    "restrictionsNone": "None",
+    "restrictions": {
+      "coa_every_lot": "Request and check the COA for every lot",
+      "inspect_every_lot": "Inspect every lot at receiving",
+      "no_new_materials": "No new materials while it lasts"
+    },
+    "warningsLabel": "Warnings",
+    "requirementsAt": "Requirements at the time: {met} of {applicable}"
   },
   "panel": {
     "compliance": "Compliance",
@@ -283,7 +344,7 @@
       "packaging": "Packaging"
     },
     "materials": "Materials",
-    "materialsHint": "Each material approved with this supplier and the documents it needs.",
+    "materialsHint": "Each material bought from them, from which facility, whether it's bought today and its food-safety approval, separately.",
     "noMaterials": "This supplier has no approved materials.",
     "makes": "Makes it",
     "sells": "Distributes it",
@@ -299,7 +360,21 @@
     "risk": {
       "low": "Low risk",
       "medium": "Medium risk",
-      "high": "High risk"
+      "high": "High risk",
+      "title": "Supplier risk",
+      "hint": "Assessed by a person: the factors suggest, but the rating and the reason are theirs.",
+      "by": "Version {version}, by {name} on {date}",
+      "factor": {
+        "material_hazard": "Material hazard",
+        "origin": "Origin",
+        "certification": "Certification",
+        "history": "History",
+        "allergens": "Allergens"
+      },
+      "suggested": "Policy {policy} suggested: {rating}",
+      "nextReview": "Next assessment: {date}",
+      "none": "Not assessed. Nobody has assessed this supplier's risk yet.",
+      "materialNote": "Each material's own risk is shown separately, under Materials."
     },
     "kind": {
       "ingredient": "Ingredient",
@@ -348,6 +423,169 @@
       "upload": "upload",
       "legend": "Legend",
       "inactive": "{count, plural, one {# material offered} other {# materials offered}} but not bought now: no documents are required until the first order."
+    },
+    "legacySite": "Recorded location",
+    "direction": {
+      "request": "We request documents",
+      "deliver": "We deliver documents"
+    },
+    "header": {
+      "label": "Supplier summary",
+      "approval": "Approval",
+      "reviewBy": "Review by {date}",
+      "risk": "Risk",
+      "assessedOn": "Assessed {date}",
+      "requirements": "Requirements",
+      "certification": "Certification",
+      "sitesVerified": "{verified} of {required} facilities",
+      "fsma204": "FSMA 204",
+      "issues": "Open nonconformities",
+      "issuesHint": "{serious} major or critical",
+      "nextAction": "Next step:"
+    },
+    "tabs": {
+      "label": "Supplier sections",
+      "resumen": "Overview",
+      "instalaciones": "Facilities",
+      "materiales": "Materials",
+      "documentos": "Documents",
+      "incidencias": "Nonconformities",
+      "historial": "History"
+    },
+    "overview": {
+      "company": "The company",
+      "roles": "Role",
+      "direction": "Relationship",
+      "sites": "Facilities",
+      "sitesCount": "{count, plural, one {# facility} other {# facilities}}",
+      "fsvp": "FSVP",
+      "fsvpYes": "Yes: manufacturer outside the US",
+      "fsvpNo": "No",
+      "contacts": "Contacts",
+      "contactsHint": "Their language sets the language of emails and requests.",
+      "primary": "Primary",
+      "noContacts": "No contacts on file.",
+      "blocking": "What blocks approval",
+      "blockingHint": "Requirements the company marked as blocking. While they're missing, only a conditional approval is possible.",
+      "noBlocking": "Nothing blocks this supplier's approval."
+    },
+    "contactRole": {
+      "food_safety": "Food safety",
+      "regulatory": "Regulatory",
+      "sales": "Sales",
+      "accounts": "Accounts"
+    },
+    "language": {
+      "es": "Spanish",
+      "en": "English"
+    },
+    "fsma": {
+      "title": "FSMA 204 (traceability)",
+      "hint": "Whether the traceability rule applies to what this supplier sends. A person decides, with a reason.",
+      "by": "By {name} on {date}",
+      "exemption": "Exemption: {text}",
+      "none": "Not assessed.",
+      "hints": {
+        "ftl_materials": "Per the materials, something bought from them is on the Food Traceability List.",
+        "no_ftl_materials": "Per the materials, nothing bought from them is on the Food Traceability List.",
+        "materials_not_checked": "Some materials haven't been checked against the Food Traceability List."
+      },
+      "later": "Lot-level capture (CTEs and KDEs) comes in a later phase; there's no readiness score here."
+    },
+    "facilities": {
+      "title": "Facilities",
+      "hint": "The supplier's plants and warehouses. Certificates belong to each facility: one plant's doesn't cover another.",
+      "legacyName": "{city} (recorded location)",
+      "kindUnknown": "Kind not recorded",
+      "legacy": "created from the supplier's previous location",
+      "address": "Address",
+      "gln": "GLN (GS1)",
+      "glnNone": "No GLN",
+      "certificate": "Certificate",
+      "validThrough": "Valid through {date}",
+      "open": "View certificate",
+      "noCertificate": "None accepted",
+      "scheme": "Scheme",
+      "scope": "Scope",
+      "issuingBody": "Certification body",
+      "number": "Number",
+      "auditDate": "Audit date",
+      "verified": "Verification",
+      "directoryChecked": "Confirmed in the scheme's directory; accepted {date}",
+      "directoryCheckedNoDate": "Confirmed in the scheme's directory",
+      "notVerified": "Not confirmed in the directory",
+      "pdfOnly": "There's a certificate, but nobody has recorded its details or confirmed it in the scheme's directory. A PDF alone doesn't certify the supplier.",
+      "requirements": "Requirements for {site}",
+      "nothingBought": "Nothing is bought from this facility now, so it has no requirements."
+    },
+    "siteKind": {
+      "plant": "Plant",
+      "warehouse": "Warehouse",
+      "distribution_center": "Distribution center",
+      "farm": "Farm",
+      "office": "Office"
+    },
+    "scheme": {
+      "sqf": "SQF",
+      "brcgs": "BRCGS",
+      "fssc22000": "FSSC 22000",
+      "ifs": "IFS",
+      "globalgap": "GLOBALG.A.P. IFA",
+      "primusgfs": "PrimusGFS",
+      "canadagap": "CanadaGAP",
+      "gsa_bap": "GSA / BAP",
+      "other": "Other"
+    },
+    "materialsTab": {
+      "material": "Material",
+      "site": "Facility and route",
+      "commercial": "Buying",
+      "qualification": "Material approval",
+      "decided": "{name}, {date}",
+      "materialRisk": "Material risk",
+      "controls": "Specification and COA",
+      "spec": "Specification {ref}",
+      "noSpec": "No specification on file"
+    },
+    "commercial": {
+      "active": "Bought",
+      "inactive": "Not bought"
+    },
+    "qualification": {
+      "not_assessed": "Not assessed",
+      "pending": "Under evaluation",
+      "approved": "Approved",
+      "conditional": "Conditional",
+      "suspended": "Suspended",
+      "rejected": "Rejected"
+    },
+    "coaPolicy": {
+      "not_set": "COA: no policy",
+      "every_lot": "COA every lot",
+      "periodic": "Periodic COA",
+      "not_required": "COA not required"
+    },
+    "documentsTab": {
+      "summary": "{pending, plural, =0 {Nothing to review} one {# document to review} other {# documents to review}} · {open, plural, =0 {no open requirements} one {# open requirement} other {# open requirements}}.",
+      "workspace": "Go to Documents",
+      "blocking": "Requirements that block approval",
+      "requirements": "Requirements",
+      "requirementsHint": "What's asked, for which facility or material, why it applies and under which program. Only reviewed and accepted evidence counts."
+    },
+    "history": {
+      "title": "History",
+      "hint": "Everything recorded about this supplier, newest first. Nothing is edited or deleted.",
+      "approval": "Approval: {action}",
+      "risk": "Risk assessed (version {version}): {rating}",
+      "policy": "policy {version}",
+      "fsma": "FSMA 204: {decision}",
+      "waived": "Requirement waived until {until}",
+      "notApplicable": "Requirement marked not applicable",
+      "nonconformity": "Nonconformity recorded",
+      "nonconformityClosed": "Nonconformity closed",
+      "document": "{type}: {state}",
+      "by": "By {name}",
+      "auditNote": "With sample data this history lives in memory. The chained audit log (each entry holding the previous one's hash) comes with the database."
     }
   },
   "lifecycle": {
@@ -498,7 +736,10 @@
       "file_empty": "The file is empty.",
       "no_permission": "Your role can't upload documents.",
       "not_found": "We couldn't find this company."
-    }
+    },
+    "aboutSites": "Facilities",
+    "aboutMaterials": "Materials",
+    "legacySite": "Recorded location"
   },
   "nonconformities": {
     "title": "Nonconformities",
@@ -510,7 +751,8 @@
       "severity": "Severity",
       "description": "Description",
       "lot": "Lot",
-      "by": "Recorded by"
+      "by": "Recorded by",
+      "status": "Status"
     },
     "severity": {
       "minor": "Minor",
@@ -536,6 +778,130 @@
       "invalid": "Choose a valid option.",
       "no_permission": "Your role can't record nonconformities.",
       "not_found": "We couldn't find this supplier."
+    },
+    "open": "Open",
+    "closedBy": "Closed by {name} on {date}",
+    "openCount": "{count, plural, =0 {None open} other {# open}}",
+    "close": "Close",
+    "closeNote": "What was done",
+    "closeSubmit": "Close nonconformity",
+    "closeErrors": {
+      "already_closed": "It was already closed.",
+      "required": "Write what was done.",
+      "too_short": "Write at least 5 characters.",
+      "too_long": "It's too long."
+    },
+    "capaLater": "Full follow-up (root cause, corrective actions and verification) comes with the findings and CAPA module."
+  },
+  "approvalState": {
+    "pending": "Pending",
+    "under_verification": "Under verification",
+    "approved": "Approved",
+    "conditional": "Conditional",
+    "suspended": "Suspended",
+    "rejected": "Rejected",
+    "inactive": "Inactive"
+  },
+  "risk": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "not_assessed": "Not assessed"
+  },
+  "certification": {
+    "status": {
+      "verified": "Verified",
+      "expiring": "Expiring",
+      "expired": "Expired",
+      "pending_verification": "To verify",
+      "audit_only": "On-site audit",
+      "missing": "Missing",
+      "not_assessed": "Not assessed"
     }
+  },
+  "fsma204": {
+    "status": {
+      "applicable": "Applies",
+      "not_applicable": "Doesn't apply",
+      "exempt": "Exempt",
+      "not_assessed": "Not assessed"
+    }
+  },
+  "requirements": {
+    "none": "No requirements: nothing is bought from them now",
+    "met": "{met} of {applicable} current",
+    "missing": "{count} missing",
+    "expired": "{count} expired",
+    "rejected": "{count} rejected",
+    "awaiting": "{count} to review",
+    "expiring": "{count} expiring",
+    "waived": "{count} waived",
+    "blocking": "{count, plural, one {# blocks approval} other {# block approval}}",
+    "allCurrent": "All current",
+    "or": "or",
+    "legacySite": "{city} (recorded location)",
+    "scope": {
+      "party": "The supplier",
+      "site": "Facility: {site}",
+      "source": "Material: {material}"
+    },
+    "andMore": " and {count} more",
+    "becauseMaterials": "For: {list}",
+    "because": {
+      "manufacturer": "Makes what you buy",
+      "distributor": "Distributes what you buy",
+      "vendor": "You buy from them directly",
+      "fsvp": "Foreign manufacturer: FSVP",
+      "ingredient": "An ingredient you buy",
+      "packaging": "Packaging you buy"
+    },
+    "col": {
+      "requirement": "Requirement",
+      "program": "Program",
+      "scope": "For",
+      "because": "Applies because",
+      "priority": "Priority",
+      "status": "Status",
+      "dates": "Dates",
+      "action": "Action"
+    },
+    "severity": {
+      "critical": "Critical",
+      "major": "Major",
+      "minor": "Minor"
+    },
+    "blockingTag": "Blocks approval",
+    "waivedUntil": "Until {date}.",
+    "validThrough": "Valid through {date}",
+    "neverExpires": "Doesn't expire",
+    "reviewedOn": "Reviewed {date}",
+    "action": {
+      "review": "Review",
+      "evidence": "View evidence"
+    },
+    "name": {
+      "facility_certification": "Facility certification or audit",
+      "questionnaire": "Supplier questionnaire",
+      "facility_registration": "FDA facility registration",
+      "fsvp_hazard_analysis": "Hazard analysis (FSVP)",
+      "guarantee_letter": "Continuing guarantee letter",
+      "insurance": "Certificate of insurance",
+      "specification": "Material specification",
+      "allergen_statement": "Allergen statement",
+      "food_contact": "Food-contact compliance"
+    }
+  },
+  "nextAction": {
+    "none": "Nothing pending",
+    "conditions_overdue": "Review the conditions (due {date})",
+    "review_overdue": "Review the approval (due {date})",
+    "blocking_gap": "{count, plural, one {Resolve the blocking requirement} other {Resolve # blocking requirements}}",
+    "review_document": "{count, plural, one {Review the document received} other {Review # documents received}}",
+    "open_issue": "{count, plural, one {Handle the open nonconformity} other {Handle # open nonconformities}}",
+    "gap": "{count, plural, one {Request the missing requirement} other {Request # open requirements}}",
+    "decide_approval": "Decide the approval",
+    "assess_risk": "Assess the risk",
+    "assess_fsma204": "Assess whether FSMA 204 applies",
+    "expiring": "{count, plural, one {Renew the one expiring soon} other {Renew # expiring soon}}"
   }
 }

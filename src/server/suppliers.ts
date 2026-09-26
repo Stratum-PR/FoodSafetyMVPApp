@@ -1,27 +1,28 @@
 import "server-only";
 
 import { DEFAULT_CATALOG } from "@/domain/catalog";
-import { type ComplianceSummary, evaluateCompliance, resultsForParty, summarize } from "@/domain/compliance";
-import type { RequirementResult } from "@/domain/status";
-import type { Approval, Lifecycle, PartyType } from "@/domain/suppliers";
+import { summarizeObligations, type RequirementSummary } from "@/domain/obligations";
+import { summarizeSuppliers, type SupplierSummary } from "@/domain/supplier-summary";
+import type { PartyType } from "@/domain/suppliers";
 import { isForeign } from "@/domain/suppliers";
 
 import { type RequestContext, requirePermission } from "./context";
-import { getSampleStore } from "./sample/store";
-import { SAMPLE_USERS, type SampleSupplierData } from "./sample/suppliers";
+import { getSampleStore, type SampleStore } from "./sample/store";
+import { SAMPLE_USERS } from "./sample/suppliers";
 import { buildSupplierDetail, type SupplierDetail } from "./supplier-detail";
 
 /*
  * Supplier service. Today it reads the fictional sample data; later it queries Postgres
- * under the company's row-level security. Screens only see these functions.
+ * under the company's row-level security. Screens only see these functions. The list, the
+ * supplier page and the panel all count with summarizeSuppliers, so their numbers agree.
  */
 
-function loadData(ctx: RequestContext): SampleSupplierData {
+function loadData(ctx: RequestContext): SampleStore {
   return getSampleStore(ctx.company.slug, ctx.today);
 }
 
-function evaluate(ctx: RequestContext, data: SampleSupplierData): RequirementResult[] {
-  return evaluateCompliance(data, data.documents, DEFAULT_CATALOG, ctx.today);
+function summarize(ctx: RequestContext, data: SampleStore) {
+  return summarizeSuppliers(data, { catalog: DEFAULT_CATALOG, today: ctx.today, policy: data.requirementPolicy });
 }
 
 export type SupplierRow = {
@@ -31,35 +32,23 @@ export type SupplierRow = {
   city: string;
   country: string;
   foreign: boolean;
-  lifecycle: Lifecycle;
-  approval: Approval;
-  /** Active approved sources this party makes or sells. */
-  activeSources: number;
-  compliance: ComplianceSummary;
+  summary: SupplierSummary;
 };
 
-/** Every supplier with its compliance, worst first. */
+/** Every supplier with its summary, computed in one pass for the whole company. */
 export async function listSuppliers(ctx: RequestContext): Promise<SupplierRow[]> {
   requirePermission(ctx, "suppliers.view");
   const data = loadData(ctx);
-  const results = evaluate(ctx, data);
-
-  return data.parties
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      city: p.city,
-      country: p.country,
-      foreign: isForeign(p),
-      lifecycle: p.lifecycle,
-      approval: p.approval,
-      activeSources: data.sources.filter(
-        (s) => s.status === "active" && (s.manufacturerId === p.id || s.distributorId === p.id),
-      ).length,
-      compliance: summarize(resultsForParty(p.id, results, data.sources)),
-    }))
-    .sort((a, b) => a.compliance.percent - b.compliance.percent || a.name.localeCompare(b.name, "es"));
+  const { summaries } = summarize(ctx, data);
+  return data.parties.map((p) => ({
+    id: p.id,
+    name: p.name,
+    type: p.type,
+    city: p.city,
+    country: p.country,
+    foreign: isForeign(p),
+    summary: summaries.get(p.id)!,
+  }));
 }
 
 export type Attention = {
@@ -71,7 +60,8 @@ export type Attention = {
 };
 
 export type PanelSummary = {
-  compliance: ComplianceSummary;
+  /** Every supplier obligation in the company, counted like the supplier list. */
+  requirements: RequirementSummary;
   suppliers: { total: number; pendingApproval: number; conditional: number };
   documentsToReview: number;
   /** Expired and soon-to-expire documents, most urgent first. */
@@ -81,30 +71,36 @@ export type PanelSummary = {
 export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary> {
   requirePermission(ctx, "suppliers.view");
   const data = loadData(ctx);
-  const results = evaluate(ctx, data);
+  const { obligations } = summarize(ctx, data);
   const names = new Map(data.parties.map((p) => [p.id, p.name]));
   const sourceMaker = new Map(data.sources.map((s) => [s.id, s.manufacturerId]));
+  const siteParty = new Map(data.sites.map((s) => [s.id, s.partyId]));
 
-  const attention: Attention[] = results
-    .filter((r) => (r.status === "expiring" || r.status === "expired") && r.document && r.expiresOn)
-    .map((r) => {
-      const subject = r.requirement.subject;
-      const partyId = subject.kind === "party" ? subject.partyId : (sourceMaker.get(subject.sourceId) ?? "");
+  const attention: Attention[] = obligations
+    .filter((o) => (o.status === "expiring" || o.status === "expired") && o.document && o.expiresOn)
+    .map((o) => {
+      const subject = o.requirement.subject;
+      const partyId =
+        subject.kind === "party"
+          ? subject.partyId
+          : subject.kind === "site"
+            ? (siteParty.get(subject.siteId) ?? "")
+            : (sourceMaker.get(subject.sourceId) ?? "");
       return {
         partyId,
         partyName: names.get(partyId) ?? "",
-        typeCode: r.document!.typeCode,
-        status: r.status as Attention["status"],
-        expiresOn: r.expiresOn!,
+        typeCode: o.document!.typeCode,
+        status: o.status as Attention["status"],
+        expiresOn: o.expiresOn!,
       };
     })
     .sort((a, b) => a.expiresOn.localeCompare(b.expiresOn));
 
   return {
-    compliance: summarize(results),
+    requirements: summarizeObligations(obligations),
     suppliers: {
       total: data.parties.filter((p) => p.lifecycle !== "inactive").length,
-      pendingApproval: data.parties.filter((p) => p.approval === "pending").length,
+      pendingApproval: data.parties.filter((p) => p.approval === "pending" && p.lifecycle !== "inactive").length,
       conditional: data.parties.filter((p) => p.approval === "conditional").length,
     },
     documentsToReview: data.documents.filter((d) => d.state === "pending_review").length,
@@ -112,8 +108,9 @@ export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary
   };
 }
 
-/** One supplier with its requirements, materials and documents, or null if it doesn't exist. */
+/** One supplier with its requirements, sites, materials and documents, or null if it doesn't exist. */
 export async function getSupplier(ctx: RequestContext, partyId: string): Promise<SupplierDetail | null> {
   requirePermission(ctx, "suppliers.view");
-  return buildSupplierDetail(loadData(ctx), partyId, ctx.today, SAMPLE_USERS);
+  const data = loadData(ctx);
+  return buildSupplierDetail(data, partyId, ctx.today, SAMPLE_USERS, data.requirementPolicy);
 }

@@ -52,7 +52,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
   const suppliers = await listUploadTargets(ctx);
   const supplier = suppliers.find((s) => s.id === first(query.suplidor));
   const para = first(query.para);
-  const about = supplier?.materials.some((m) => m.sourceId === para) ? para : "party";
+  const about =
+    supplier?.materials.some((m) => m.sourceId === para) || supplier?.sites.some((s) => s.siteId === para)
+      ? para
+      : "party";
   const cancelHref = supplier ? supplierHref(company, supplier.id) : navHref(company, "documentos");
 
   return (

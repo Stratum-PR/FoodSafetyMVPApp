@@ -12,7 +12,7 @@ describe("supplier document matrix", () => {
   const withBoth = data.parties.find((p) => {
     const kinds = new Set(
       data.sources
-        .filter((s) => s.status === "active" && (s.manufacturerId === p.id || s.distributorId === p.id))
+        .filter((s) => s.commercial === "active" && (s.manufacturerId === p.id || s.distributorId === p.id))
         .map((s) => data.materials.find((m) => m.id === s.materialId)!.kind),
     );
     return kinds.size === 2;
@@ -20,11 +20,11 @@ describe("supplier document matrix", () => {
 
   it("has a row per material bought today and a column per material-level document", () => {
     const party = data.parties.find((p) =>
-      data.sources.some((s) => s.manufacturerId === p.id && s.status === "active"),
+      data.sources.some((s) => s.manufacturerId === p.id && s.commercial === "active"),
     )!;
     const matrix = matrixOf(party.id);
     expect(matrix.rows.length).toBeGreaterThan(0);
-    expect(matrix.rows.every((r) => r.source.status === "active")).toBe(true);
+    expect(matrix.rows.every((r) => r.source.commercial === "active")).toBe(true);
     expect(matrix.documents).toContain("spec_sheet");
     // Supplier-level documents (certificates, questionnaire…) are not columns.
     expect(matrix.documents).not.toContain("gfsi_cert");
@@ -46,9 +46,9 @@ describe("supplier document matrix", () => {
       const perDocument = byDocument(matrix).reduce((n, d) => n + d.open, 0);
       expect(perDocument).toBe(perMaterial);
       for (const row of matrix.rows) {
-        const cells = Object.values(row.cells).filter((c) => c !== null);
+        const cells = Object.values(row.cells).filter((c) => c !== null && c.status !== "not_applicable");
         expect(row.required).toBe(cells.length);
-        expect(row.open).toBe(cells.filter((c) => c!.status !== "current").length);
+        expect(row.open).toBe(cells.filter((c) => !["current", "waived"].includes(c!.status)).length);
       }
     }
   });

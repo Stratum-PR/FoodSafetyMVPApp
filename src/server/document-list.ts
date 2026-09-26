@@ -32,11 +32,17 @@ export function toDocumentRows(data: SampleSupplierData, users: SampleUser[]): D
   const parties = new Map(data.parties.map((p) => [p.id, p.name]));
   const materials = new Map(data.materials.map((m) => [m.id, m.name]));
   const sources = new Map(data.sources.map((s) => [s.id, s]));
+  const siteParty = new Map(data.sites.map((s) => [s.id, s.partyId]));
   const userName = (id: string) => users.find((u) => u.id === id)?.name ?? id;
 
   return data.documents.map((d: SupplierDocument) => {
     const source = d.subject.kind === "source" ? sources.get(d.subject.sourceId) : undefined;
-    const partyId = d.subject.kind === "party" ? d.subject.partyId : (source?.manufacturerId ?? "");
+    const partyId =
+      d.subject.kind === "party"
+        ? d.subject.partyId
+        : d.subject.kind === "site"
+          ? (siteParty.get(d.subject.siteId) ?? "")
+          : (source?.manufacturerId ?? "");
     return {
       id: d.id,
       typeCode: d.typeCode,

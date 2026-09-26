@@ -8,7 +8,14 @@ import { evaluateObligations } from "./obligations";
 import type { SupplierData } from "./requirements";
 import { checkRiskAssessment, currentAssessment, DEFAULT_RISK_POLICY, suggestRating } from "./risk";
 import { nextActionFor, summarizeSuppliers, type SupplierDataset } from "./supplier-summary";
-import { backfillSource, CHECKLIST_ITEMS, legacySite, type Party, type SupplierDocument } from "./suppliers";
+import {
+  backfillSource,
+  type CertificateDetails,
+  CHECKLIST_ITEMS,
+  legacySite,
+  type Party,
+  type SupplierDocument,
+} from "./suppliers";
 
 const TODAY = "2026-09-24";
 
@@ -87,7 +94,7 @@ describe("facility certification", () => {
     const unchecked = verified();
     unchecked.verification = {
       ...unchecked.verification!,
-      details: { ...(unchecked.verification!.details as never), directoryVerified: false },
+      details: { ...(unchecked.verification!.details as CertificateDetails), directoryVerified: false },
     };
     expect(certOf(plantA.id, [unchecked]).status).toBe("pending_verification");
   });

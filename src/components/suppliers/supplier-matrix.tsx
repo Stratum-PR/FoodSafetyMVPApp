@@ -1,22 +1,43 @@
-import { CircleAlert, CircleCheck, CircleX, Clock, type LucideIcon } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  CircleMinus,
+  CircleX,
+  Clock,
+  Hourglass,
+  type LucideIcon,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { documentHref, uploadHref } from "@/components/app-shell/nav-items";
 import { DEFAULT_CATALOG, findType } from "@/domain/catalog";
-import type { RequirementResult, RequirementStatus } from "@/domain/status";
+import type { Obligation, ObligationStatus } from "@/domain/obligations";
 import type { Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import type { SourceView } from "@/server/supplier-detail";
 import { buildMatrix, byDocument, type MatrixView } from "@/server/supplier-matrix";
 
-const MARK: Record<RequirementStatus, { Icon: LucideIcon; tone: string }> = {
+const MARK: Record<ObligationStatus, { Icon: LucideIcon; tone: string }> = {
   current: { Icon: CircleCheck, tone: "text-status-current" },
   expiring: { Icon: Clock, tone: "text-status-expiring" },
   expired: { Icon: CircleX, tone: "text-status-missing" },
   missing: { Icon: CircleAlert, tone: "text-status-missing" },
+  rejected: { Icon: CircleX, tone: "text-status-missing" },
+  awaiting_review: { Icon: Hourglass, tone: "text-muted-foreground" },
+  waived: { Icon: ShieldCheck, tone: "text-muted-foreground" },
+  not_applicable: { Icon: CircleMinus, tone: "text-muted-foreground" },
 };
-const STATUSES: RequirementStatus[] = ["current", "expiring", "expired", "missing"];
+const STATUSES: ObligationStatus[] = [
+  "current",
+  "expiring",
+  "awaiting_review",
+  "expired",
+  "rejected",
+  "missing",
+  "waived",
+];
 
 /**
  * Materials × documents on the supplier page, like the demo: "Por ingrediente" (a row per
@@ -39,7 +60,7 @@ export async function SupplierMatrix({
   view: MatrixView;
   incompleteOnly: boolean;
   canUpload: boolean;
-  /** This supplier page, to build the view links. */
+  /** This supplier page (without a query), to build the view links. */
   pageHref: string;
   lang: Locale;
 }) {
@@ -49,14 +70,14 @@ export async function SupplierMatrix({
   const materialName = (s: SourceView) => `${s.material.name} (${s.material.code})`;
 
   const href = (v: MatrixView, incomplete: boolean) => {
-    const q = new URLSearchParams();
+    const q = new URLSearchParams({ tab: "materiales" });
     if (v === "documento") q.set("vista", "documento");
     if (incomplete) q.set("incompletos", "1");
     const query = q.toString();
     return `${pageHref}${query ? `?${query}` : ""}#matriz`;
   };
 
-  function Cell({ result, source, code }: { result: RequirementResult | null; source: SourceView; code: string }) {
+  function Cell({ result, source, code }: { result: Obligation | null; source: SourceView; code: string }) {
     if (!result) {
       return (
         <td className="px-3 py-2 text-center text-muted-foreground">
