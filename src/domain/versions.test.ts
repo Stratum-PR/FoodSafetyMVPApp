@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { reviewDocument } from "./review";
-import type { SupplierDocument } from "./suppliers";
+import { CHECKLIST_ITEMS, type SupplierDocument } from "./suppliers";
 import { activeVersion, documentVersions } from "./versions";
 
 const party = { kind: "party", partyId: "p1" } as const;
@@ -43,9 +43,30 @@ describe("document versions", () => {
   });
 
   it("keeps the old version on file after a new one is accepted", () => {
-    const pending = doc("new", { state: "pending_review", issuedOn: "2027-01-05" });
+    const pending = doc("new", {
+      state: "pending_review",
+      issuedOn: "2027-01-05",
+      file: { key: "k", name: "c.pdf", size: 10, contentType: "application/pdf", sha256: "ab" },
+    });
     const qm = { userId: "ana", role: "quality_manager" } as const;
-    const result = reviewDocument(pending, all, qm, "accept", "", "2027-01-20", false);
+    const result = reviewDocument({
+      doc: pending,
+      others: all,
+      actor: qm,
+      decision: "accept",
+      reason: "",
+      today: "2027-01-20",
+      perLot: false,
+      verification: {
+        checklist: [...CHECKLIST_ITEMS],
+        scheme: "sqf",
+        scope: "Molienda",
+        issuingBody: "Certificadora Ejemplo",
+        certificateNumber: "C-1",
+        facility: "Planta 1",
+        directoryVerified: true,
+      },
+    });
     if (!result.ok) throw new Error(result.denial);
 
     const changed = new Map([result.document, ...result.superseded].map((d) => [d.id, d]));
