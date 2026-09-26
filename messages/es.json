@@ -600,32 +600,108 @@
     "tabs": {
       "revisar": "Por revisar",
       "aceptados": "Aceptados",
-      "rechazados": "Rechazados",
-      "reemplazados": "Reemplazados",
-      "todos": "Todos"
+      "rechazados": "Rechazados"
     },
     "search": "Buscar",
-    "searchPlaceholder": "Suplidor, material, tipo o lote",
+    "searchPlaceholder": "Suplidor, instalación, material, tipo, lote o archivo",
     "caption": "Documentos",
-    "col": {
-      "type": "Documento",
-      "supplier": "Suplidor",
-      "about": "Para",
-      "received": "Recibido",
-      "expires": "Vence",
-      "uploadedBy": "Subido por",
-      "state": "Estado"
-    },
     "supplierItself": "El suplidor",
     "lot": "Lote {lot}",
     "neverExpires": "No vence",
     "yours": "tú",
     "count": "{count, plural, one {# documento} other {# documentos}}",
-    "queueHint": "Los más antiguos primero. Aceptar o rechazar cada uno actualiza el cumplimiento al momento.",
+    "queueHint": "Primero lo que desbloquea requisitos de alto riesgo, luego los más antiguos. Aceptar o rechazar actualiza el cumplimiento al momento.",
     "emptyQueue": "No hay documentos por revisar",
     "emptyQueueBody": "Cuando un suplidor o tu equipo suba un documento, aparecerá aquí para revisarlo.",
     "empty": "No hay documentos aquí",
-    "emptySearch": "Ningún documento coincide con la búsqueda."
+    "emptySearch": "Ningún documento coincide con la búsqueda.",
+    "gapsTab": "Faltantes",
+    "filtersTitle": "Filtros",
+    "apply": "Aplicar",
+    "clear": "Quitar filtros",
+    "any": "Todos",
+    "filter": {
+      "party": "Suplidor",
+      "material": "Material",
+      "type": "Tipo de documento",
+      "program": "Programa",
+      "via": "Origen",
+      "priority": "Prioridad",
+      "expiry": "Vence",
+      "lifecycle": "Versiones",
+      "sort": "Ordenar por"
+    },
+    "via": {
+      "equipo": "Subido por el equipo",
+      "solicitud": "Enviado por solicitud"
+    },
+    "lifecycle": {
+      "actuales": "Vigentes",
+      "reemplazados": "Reemplazadas",
+      "todas": "Todas"
+    },
+    "expiry": {
+      "vencidos": "Ya vencidos",
+      "30": "En 30 días",
+      "60": "En 60 días",
+      "90": "En 90 días",
+      "sin-vencimiento": "No vence"
+    },
+    "sort": {
+      "riesgo": "Prioridad y antigüedad",
+      "antiguos": "Más antiguos",
+      "recientes": "Más recientes",
+      "vencimiento": "Vencimiento"
+    },
+    "col": {
+      "document": "Documento",
+      "from": "De",
+      "appliesTo": "Aplica a",
+      "requirement": "Requisito y programa",
+      "received": "Recibido",
+      "validThrough": "Válido hasta",
+      "priority": "Prioridad",
+      "state": "Estado",
+      "action": "Acción"
+    },
+    "version": "v{version}",
+    "noFile": "Sin archivo (ejemplo)",
+    "company": "La empresa",
+    "obligations": "{count, plural, one {Cubre # obligación} other {Cubre # obligaciones}}",
+    "noRequirement": "Ningún requisito activo",
+    "viaTeam": "Equipo · {name}",
+    "viaPortal": "Solicitud · {name}",
+    "review": "Revisar",
+    "view": "Ver",
+    "highRisk": "Alto riesgo",
+    "page": {
+      "label": "Páginas",
+      "of": "Página {page} de {pages}",
+      "prev": "Anterior",
+      "next": "Siguiente"
+    },
+    "loading": "Cargando documentos…",
+    "error": "No pudimos cargar los documentos.",
+    "gaps": {
+      "title": "Faltantes de evidencia",
+      "hint": "Requisitos sin un documento vigente y aceptado. Salen de las obligaciones, nunca son documentos inventados.",
+      "caption": "Faltantes de evidencia",
+      "count": "{count, plural, one {# faltante} other {# faltantes}}",
+      "col": {
+        "requirement": "Requisito",
+        "from": "De",
+        "appliesTo": "Aplica a",
+        "status": "Estado",
+        "action": "Acción"
+      },
+      "blocking": "Bloquea la aprobación",
+      "materials": "{count, plural, one {# material depende de esto} other {# materiales dependen de esto}}",
+      "request": "Solicitar",
+      "upload": "Subir",
+      "requested": "Ya solicitado",
+      "empty": "No hay faltantes",
+      "emptyBody": "Todos los requisitos activos tienen un documento vigente o están en revisión."
+    }
   },
   "document": {
     "back": "Documentos",
@@ -651,7 +727,7 @@
       "reject": "Rechazar",
       "reason": "Motivo del rechazo",
       "reasonHint": "Obligatorio para rechazar. Quien envíe el reemplazo lo verá.",
-      "acceptHint": "Al aceptarlo cuenta para el cumplimiento y reemplaza el anterior del mismo tipo.",
+      "acceptHint": "Al aceptarlo cuenta para los requisitos de abajo y reemplaza la versión anterior de este mismo documento.",
       "accepted": "Aceptado por {name} el {date}.",
       "rejected": "Rechazado por {name} el {date}.",
       "superseded": "Reemplazado por un documento más reciente.",
@@ -660,7 +736,21 @@
       "doneReject": "Documento rechazado.",
       "saving": "Guardando…",
       "next": "Siguiente por revisar",
-      "backToQueue": "Volver a la lista"
+      "backToQueue": "Volver a la lista",
+      "highRisk": "Alto riesgo: cubre un material de alto riesgo.",
+      "checklistTitle": "Lista de verificación",
+      "checklistHint": "Confirma cada punto con el documento a la vista. Todos son necesarios para aceptar.",
+      "checklist": {
+        "identity": "Es del suplidor correcto (nombre legal)",
+        "facility": "Es de la instalación correcta (dirección)",
+        "scope": "El alcance cubre el material o producto",
+        "dates": "Las fechas de emisión y vencimiento son correctas y vigentes",
+        "issuer": "Lo emite quien corresponde (certificadora, aseguradora, el suplidor)",
+        "requirement_fit": "Es el tipo de documento que pide el requisito"
+      },
+      "certificateTitle": "Datos del certificado",
+      "insuranceTitle": "Datos del seguro",
+      "detailsHint": "Escríbelos tal como aparecen en el documento."
     },
     "denial": {
       "own_upload": "Tú subiste este documento. Otra persona de tu equipo debe revisarlo.",
@@ -671,7 +761,10 @@
       "own_supplier": "No puedes hacer este cambio.",
       "last_owner": "No puedes hacer este cambio.",
       "not_found": "Este documento ya no existe.",
-      "invalid": "No pudimos procesar la solicitud. Inténtalo otra vez."
+      "invalid": "No pudimos procesar la solicitud. Inténtalo otra vez.",
+      "no_file": "Este documento no tiene archivo. Sin archivo no se puede aceptar como evidencia: recházalo o pide el documento al suplidor.",
+      "final_review_required": "Es evidencia de alto riesgo. La revisión final la hace un gerente de calidad o un administrador.",
+      "verification_invalid": "Completa la lista de verificación y los datos marcados."
     },
     "supplierItself": "El suplidor",
     "history": {
@@ -694,6 +787,60 @@
       "download": "Descargar",
       "preview": "Vista del archivo {name}",
       "info": "{name} · {size}"
+    },
+    "from": "De",
+    "facility": "Instalación",
+    "company": "La empresa",
+    "sha256": "Huella SHA-256",
+    "fromRequest": "Llegó por una solicitud al suplidor.",
+    "viewRequest": "Ver la solicitud",
+    "requirements": "Requisitos que cubre",
+    "field": {
+      "scheme": "Esquema",
+      "choose": "Escoge…",
+      "other": "Otro (no reconocido por GFSI)",
+      "scope": "Alcance",
+      "issuingBody": "Organismo certificador",
+      "certificateNumber": "Número de certificado",
+      "facility": "Instalación según el certificado",
+      "auditDate": "Fecha de auditoría",
+      "directoryVerified": "Lo encontré en el directorio público del esquema",
+      "directoryHint": "Un PDF o un esquema escrito a mano no prueban el reconocimiento GFSI.",
+      "insurer": "Aseguradora",
+      "policyNumber": "Número de póliza",
+      "coverageUsd": "Cubierta por ocurrencia (USD)",
+      "coverageHint": "Mínimo de la empresa: {minimum}."
+    },
+    "verr": {
+      "required": "Este campo es obligatorio.",
+      "too_long": "Es muy largo (máximo 200 caracteres).",
+      "invalid_date": "La fecha no es válida.",
+      "future_date": "No puede ser una fecha futura.",
+      "not_recognized": "Escoge un esquema reconocido por GFSI.",
+      "invalid_amount": "Escribe una cantidad en dólares, sin centavos.",
+      "incomplete": "Marca todos los puntos de la lista."
+    },
+    "impact": {
+      "title": "Qué cambia al aceptarlo",
+      "hint": "El estado de cada requisito ahora y después de aceptar. Mientras está en revisión no cuenta para nada.",
+      "caption": "Cambios en los requisitos",
+      "requirement": "Requisito",
+      "program": "Programa",
+      "now": "Ahora",
+      "after": "Al aceptar",
+      "materials": "{count, plural, one {# material} other {# materiales}}",
+      "blocking": "Bloquea la aprobación",
+      "none": "No cubre ningún requisito activo. Se guarda en el historial, pero no cambia el cumplimiento."
+    },
+    "verified": {
+      "title": "Lo que confirmó quien lo revisó",
+      "checklist": "Lista de verificación completa",
+      "gfsiRecognized": "Esquema GFSI verificado en el directorio",
+      "gfsiNotRecognized": "No verificado como GFSI",
+      "coverage": "Cubierta: {amount}",
+      "meets": "Cumple el mínimo de {minimum}",
+      "below": "Menor que el mínimo de {minimum}",
+      "no_threshold": "La empresa no tiene un mínimo configurado"
     }
   },
   "upload": {
@@ -903,5 +1050,257 @@
     "assess_risk": "Evaluar el riesgo",
     "assess_fsma204": "Evaluar si aplica FSMA 204",
     "expiring": "{count, plural, one {Renovar el que vence pronto} other {Renovar # que vencen pronto}}"
+  },
+  "priority": {
+    "urgent": "Urgente",
+    "high": "Alta",
+    "normal": "Normal"
+  },
+  "requests": {
+    "new": "Nueva solicitud",
+    "emailLog": "Correos enviados",
+    "caption": "Solicitudes",
+    "count": "{count, plural, one {# solicitud} other {# solicitudes}}",
+    "col": {
+      "supplier": "Suplidor y contacto",
+      "progress": "Progreso",
+      "reason": "Programa",
+      "dates": "Enviada · vence",
+      "activity": "Última actividad",
+      "reminder": "Próximo recordatorio",
+      "status": "Estado",
+      "action": "Acción"
+    },
+    "progress": "{accepted} de {requested} aceptados",
+    "received": "{received} recibidos",
+    "notSent": "Sin enviar",
+    "noReminder": "—",
+    "open": "Abrir",
+    "filterStatus": "Estado",
+    "all": "Todas",
+    "empty": "Todavía no hay solicitudes",
+    "emptyBody": "Pide a un suplidor los documentos que le faltan. Recibe un enlace para subirlos desde el celular, sin crear cuenta.",
+    "emptyFilter": "Ninguna solicitud tiene este estado.",
+    "status": {
+      "draft": "Borrador",
+      "sent": "Enviada",
+      "partially_received": "Recibida en parte",
+      "awaiting_review": "Por revisar",
+      "rejected_items": "Con rechazos",
+      "complete": "Completa",
+      "overdue": "Atrasada",
+      "cancelled": "Cancelada"
+    },
+    "reminderKind": {
+      "request_due_soon": "Aviso de fecha límite",
+      "request_overdue": "Aviso de atraso",
+      "request_escalation": "Alerta al equipo"
+    },
+    "itemStatus": {
+      "requested": "Solicitado",
+      "uploaded": "Subido, en revisión",
+      "resubmitted": "Reenviado, en revisión",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado",
+      "waived": "Cerrado sin documento"
+    },
+    "form": {
+      "title": "Nueva solicitud",
+      "description": "Escoge un suplidor y los documentos que le faltan. Recibirá un correo en español e inglés y un enlace para subirlos.",
+      "supplier": "Suplidor",
+      "chooseSupplier": "Escoge un suplidor…",
+      "gapCount": "{count, plural, one {# faltante} other {# faltantes}}",
+      "next": "Continuar",
+      "contact": "Contacto",
+      "primary": "principal",
+      "items": "Qué pedir",
+      "itemsHint": "Solo lo que le falta a este suplidor. Lo ya solicitado en otra solicitud abierta no se puede pedir otra vez.",
+      "alreadyRequested": "Ya solicitado",
+      "dueOn": "Fecha límite",
+      "dueHint": "Entre 1 y 90 días desde hoy.",
+      "language": "Idioma del correo",
+      "languageOption": {
+        "es": "Español primero",
+        "en": "Inglés primero"
+      },
+      "message": "Mensaje (opcional)",
+      "messageHint": "Se incluye en el correo y en la página del suplidor.",
+      "saveDraft": "Guardar borrador",
+      "send": "Enviar solicitud",
+      "saving": "Guardando…",
+      "noGaps": "A este suplidor no le falta nada que se pueda solicitar.",
+      "noSuppliers": "Ningún suplidor tiene faltantes que solicitar.",
+      "noContact": "Este suplidor no tiene contactos. Añade uno en su perfil antes de solicitar.",
+      "summary": "Revisa los campos marcados.",
+      "errors": {
+        "required": "Este campo es obligatorio.",
+        "not_a_gap": "Algo de lo escogido ya no falta. Recarga la página.",
+        "already_requested": "Algo de lo escogido ya está en otra solicitud abierta.",
+        "invalid_date": "La fecha no es válida.",
+        "date_too_soon": "Escoge una fecha a partir de mañana.",
+        "date_too_far": "Escoge una fecha dentro de 90 días.",
+        "too_long": "El mensaje es muy largo (máximo 1000 caracteres)."
+      }
+    },
+    "detail": {
+      "back": "Solicitudes",
+      "to": "Para {name} · {email}",
+      "createdBy": "Creada por {name} el {date}",
+      "sentBy": "Enviada por {name} el {date}",
+      "due": "Fecha límite: {date}",
+      "message": "Mensaje",
+      "cancelled": "Cancelada: {reason}",
+      "items": "Documentos solicitados",
+      "itemsCaption": "Documentos solicitados",
+      "col": {
+        "requirement": "Requisito",
+        "appliesTo": "Aplica a",
+        "status": "Estado",
+        "documents": "Recibido"
+      },
+      "noDocuments": "Nada todavía",
+      "waive": "Cerrar sin documento",
+      "waiveReason": "Motivo para cerrarlo",
+      "waiveHint": "Queda en el historial. Por ejemplo: ya no se le compra este material.",
+      "confirmWaive": "Cerrar",
+      "link": {
+        "title": "Enlace para el suplidor",
+        "hint": "Abre solo esta solicitud, sin cuenta, por 30 días. Compártelo por WhatsApp o texto.",
+        "active": "Activo hasta el {date}.",
+        "lastUsed": "Abierto por última vez el {date}.",
+        "neverUsed": "Todavía no lo han abierto.",
+        "none": "No hay un enlace activo.",
+        "once": "Cópialo ahora: por seguridad no se guarda y no se puede volver a mostrar.",
+        "copy": "Copiar enlace",
+        "copied": "Copiado",
+        "whatsapp": "Abrir en WhatsApp",
+        "whatsappText": "{company} te pide documentos. Súbelos aquí: {link}",
+        "new": "Crear un enlace nuevo",
+        "newHint": "El enlace anterior deja de funcionar."
+      },
+      "send": "Enviar solicitud",
+      "resend": "Enviar el correo otra vez",
+      "sendHint": "Envía un correo en {language} e {other} al contacto, con un enlace nuevo.",
+      "cancel": "Cancelar solicitud",
+      "cancelReason": "Motivo de la cancelación",
+      "confirmCancel": "Cancelar la solicitud",
+      "reasonErrors": {
+        "reason_required": "Escribe el motivo (al menos 5 caracteres).",
+        "reason_too_long": "El motivo es muy largo (máximo 500 caracteres).",
+        "closed": "Ya está cerrada."
+      },
+      "emails": "Correos",
+      "emailsEmpty": "No se han enviado correos.",
+      "activity": "Actividad",
+      "action": {
+        "request.created": "Creó la solicitud",
+        "request.sent": "Envió la solicitud",
+        "request.link_created": "Creó un enlace",
+        "request.cancelled": "Canceló la solicitud",
+        "request.item_waived": "Cerró un documento sin recibirlo",
+        "portal.opened": "Abrió el enlace",
+        "portal.uploaded": "Subió un documento",
+        "reminder.sent": "Recordatorio automático"
+      },
+      "notFoundTitle": "No encontramos esta solicitud",
+      "notFoundBody": "Puede que ya no exista o que la dirección esté incompleta."
+    },
+    "log": {
+      "title": "Correos enviados",
+      "description": "Cada correo que la app envía a suplidores, como prueba de que se les avisó.",
+      "outbox": "El envío de correos todavía no está conectado: los mensajes se guardan aquí y no salen de la app.",
+      "caption": "Correos enviados",
+      "col": {
+        "at": "Fecha",
+        "to": "Para",
+        "template": "Mensaje",
+        "status": "Estado",
+        "id": "Identificador"
+      },
+      "template": {
+        "request": "Solicitud de documentos",
+        "expiry_warning": "Aviso de vencimiento",
+        "request_due_soon": "Aviso de fecha límite",
+        "request_overdue": "Aviso de atraso"
+      },
+      "status": {
+        "logged": "Guardado (no enviado)",
+        "sent": "Enviado",
+        "failed": "Falló"
+      },
+      "empty": "Todavía no hay correos."
+    },
+    "noAccess": "Tu rol no puede enviar solicitudes."
+  },
+  "email": {
+    "greeting": "Hola, {party}:",
+    "note": "Mensaje de la empresa: {message}",
+    "linkIntro": "Sube los documentos aquí (funciona desde el celular, sin crear cuenta):",
+    "linkPrivate": "Este enlace es solo para ustedes. No lo compartan.",
+    "signature": "Gracias,\n{company}",
+    "request": {
+      "subject": "{company} solicita {count, plural, one {# documento} other {# documentos}}",
+      "body": "{company} necesita {count, plural, one {# documento} other {# documentos}} para su programa de suplidores. Fecha límite: {dueOn}."
+    },
+    "expiry_warning": {
+      "subject": "{document} vence el {expiresOn}",
+      "body": "Su {document} en el archivo de {company} vence el {expiresOn}. Por favor envíen la versión renovada antes de esa fecha."
+    },
+    "request_due_soon": {
+      "subject": "Recordatorio: documentos para {company} vencen el {dueOn}",
+      "body": "Quedan {count, plural, one {# documento pendiente} other {# documentos pendientes}} de la solicitud de {company}. Fecha límite: {dueOn}."
+    },
+    "request_overdue": {
+      "subject": "Atrasado: documentos para {company}",
+      "body": "La fecha límite ({dueOn}) pasó y quedan {count, plural, one {# documento pendiente} other {# documentos pendientes}}. Por favor envíenlos lo antes posible."
+    }
+  },
+  "portal": {
+    "title": "Documentos solicitados",
+    "intro": "{company} le pide estos documentos a {party}.",
+    "due": "Fecha límite: {date}",
+    "expires": "Este enlace funciona hasta el {date}.",
+    "message": "Mensaje de {company}",
+    "privacy": "Esta página solo muestra esta solicitud. Los archivos se guardan de forma privada para {company}.",
+    "items": "Documentos",
+    "status": {
+      "requested": "Falta enviarlo",
+      "uploaded": "Recibido, en revisión",
+      "resubmitted": "Recibido otra vez, en revisión",
+      "accepted": "Aceptado",
+      "rejected": "Rechazado: envíelo otra vez"
+    },
+    "rejectedBecause": "Motivo: {reason}",
+    "acceptedOne": "Uno de estos tipos sirve:",
+    "type": "Tipo de documento",
+    "issuedOn": "Fecha de emisión (opcional)",
+    "expiresOn": "Fecha de vencimiento (opcional)",
+    "file": "Archivo o foto",
+    "fileHint": "PDF, JPG o PNG, hasta 10 MB. En el celular puede tomar una foto.",
+    "send": "Enviar",
+    "sending": "Enviando…",
+    "sent": "Recibido. {company} lo revisará.",
+    "allDone": "No queda nada por enviar. Gracias.",
+    "denialTitle": "Este enlace no está disponible",
+    "denial": {
+      "expired": "El enlace venció. Pida uno nuevo a quien le escribió.",
+      "revoked": "Este enlace fue reemplazado por uno más reciente. Use el último que recibió.",
+      "cancelled": "La solicitud fue cancelada.",
+      "not_sent": "Esta solicitud todavía no se ha enviado.",
+      "not_found": "No encontramos esta solicitud. Revise que el enlace esté completo.",
+      "not_waiting": "Este documento ya se recibió y está en revisión."
+    }
+  },
+  "notifications": {
+    "bell": "Notificaciones",
+    "unread": "{count, plural, one {# sin leer} other {# sin leer}}",
+    "empty": "No tienes notificaciones.",
+    "markRead": "Marcar todas como leídas",
+    "kind": {
+      "portal_upload": "{party} envió un documento para revisar.",
+      "expired_escalation": "Un documento aceptado venció.",
+      "request_escalation": "Una solicitud lleva una semana atrasada.",
+      "weekly_digest": "Resumen semanal: {toReview} por revisar, {gaps} faltantes, {expiring} por vencer, {overdue} solicitudes atrasadas."
+    }
   }
 }

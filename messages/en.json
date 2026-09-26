@@ -600,32 +600,108 @@
     "tabs": {
       "revisar": "To review",
       "aceptados": "Accepted",
-      "rechazados": "Rejected",
-      "reemplazados": "Superseded",
-      "todos": "All"
+      "rechazados": "Rejected"
     },
     "search": "Search",
-    "searchPlaceholder": "Supplier, material, type or lot",
+    "searchPlaceholder": "Supplier, facility, material, type, lot or file",
     "caption": "Documents",
-    "col": {
-      "type": "Document",
-      "supplier": "Supplier",
-      "about": "For",
-      "received": "Received",
-      "expires": "Expires",
-      "uploadedBy": "Uploaded by",
-      "state": "Status"
-    },
     "supplierItself": "The supplier",
     "lot": "Lot {lot}",
     "neverExpires": "Does not expire",
     "yours": "you",
     "count": "{count, plural, one {# document} other {# documents}}",
-    "queueHint": "Oldest first. Accepting or rejecting each one updates compliance right away.",
+    "queueHint": "Whatever unblocks high-risk requirements first, then the oldest. Accepting or rejecting updates compliance right away.",
     "emptyQueue": "No documents to review",
     "emptyQueueBody": "When a supplier or your team uploads a document, it shows up here for review.",
     "empty": "No documents here",
-    "emptySearch": "No document matches the search."
+    "emptySearch": "No document matches the search.",
+    "gapsTab": "Evidence gaps",
+    "filtersTitle": "Filters",
+    "apply": "Apply",
+    "clear": "Clear filters",
+    "any": "All",
+    "filter": {
+      "party": "Supplier",
+      "material": "Material",
+      "type": "Document type",
+      "program": "Program",
+      "via": "Source",
+      "priority": "Priority",
+      "expiry": "Expires",
+      "lifecycle": "Versions",
+      "sort": "Sort by"
+    },
+    "via": {
+      "equipo": "Uploaded by the team",
+      "solicitud": "Sent through a request"
+    },
+    "lifecycle": {
+      "actuales": "In force",
+      "reemplazados": "Replaced",
+      "todas": "All"
+    },
+    "expiry": {
+      "vencidos": "Already expired",
+      "30": "Within 30 days",
+      "60": "Within 60 days",
+      "90": "Within 90 days",
+      "sin-vencimiento": "Doesn't expire"
+    },
+    "sort": {
+      "riesgo": "Priority and age",
+      "antiguos": "Oldest",
+      "recientes": "Newest",
+      "vencimiento": "Expiration"
+    },
+    "col": {
+      "document": "Document",
+      "from": "From",
+      "appliesTo": "Applies to",
+      "requirement": "Requirement and program",
+      "received": "Received",
+      "validThrough": "Valid through",
+      "priority": "Priority",
+      "state": "Status",
+      "action": "Action"
+    },
+    "version": "v{version}",
+    "noFile": "No file (sample)",
+    "company": "The company",
+    "obligations": "{count, plural, one {Covers # obligation} other {Covers # obligations}}",
+    "noRequirement": "No active requirement",
+    "viaTeam": "Team · {name}",
+    "viaPortal": "Request · {name}",
+    "review": "Review",
+    "view": "View",
+    "highRisk": "High risk",
+    "page": {
+      "label": "Pages",
+      "of": "Page {page} of {pages}",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "loading": "Loading documents…",
+    "error": "We couldn't load the documents.",
+    "gaps": {
+      "title": "Evidence gaps",
+      "hint": "Requirements with no current, accepted document. They come from obligations, never from made-up documents.",
+      "caption": "Evidence gaps",
+      "count": "{count, plural, one {# gap} other {# gaps}}",
+      "col": {
+        "requirement": "Requirement",
+        "from": "From",
+        "appliesTo": "Applies to",
+        "status": "Status",
+        "action": "Action"
+      },
+      "blocking": "Blocks approval",
+      "materials": "{count, plural, one {# material relies on this} other {# materials rely on this}}",
+      "request": "Request",
+      "upload": "Upload",
+      "requested": "Already requested",
+      "empty": "No gaps",
+      "emptyBody": "Every active requirement has a current document or one in review."
+    }
   },
   "document": {
     "back": "Documents",
@@ -651,7 +727,7 @@
       "reject": "Reject",
       "reason": "Reason for rejecting",
       "reasonHint": "Required to reject. Whoever sends the replacement will see it.",
-      "acceptHint": "Once accepted it counts toward compliance and replaces the previous one of the same type.",
+      "acceptHint": "Once accepted it counts for the requirements below and replaces the previous version of this same document.",
       "accepted": "Accepted by {name} on {date}.",
       "rejected": "Rejected by {name} on {date}.",
       "superseded": "Replaced by a newer document.",
@@ -660,7 +736,21 @@
       "doneReject": "Document rejected.",
       "saving": "Saving…",
       "next": "Next to review",
-      "backToQueue": "Back to the list"
+      "backToQueue": "Back to the list",
+      "highRisk": "High risk: it covers a high-risk material.",
+      "checklistTitle": "Checklist",
+      "checklistHint": "Confirm each point with the document in front of you. All are needed to accept.",
+      "checklist": {
+        "identity": "It's from the right supplier (legal name)",
+        "facility": "It's for the right facility (address)",
+        "scope": "The scope covers the material or product",
+        "dates": "Issue and expiration dates are right and current",
+        "issuer": "It's issued by the right party (certification body, insurer, the supplier)",
+        "requirement_fit": "It's the kind of document the requirement asks for"
+      },
+      "certificateTitle": "Certificate details",
+      "insuranceTitle": "Insurance details",
+      "detailsHint": "Type them as they appear on the document."
     },
     "denial": {
       "own_upload": "You uploaded this document. Someone else on your team must review it.",
@@ -671,7 +761,10 @@
       "own_supplier": "You can't make this change.",
       "last_owner": "You can't make this change.",
       "not_found": "This document no longer exists.",
-      "invalid": "We couldn't process the request. Please try again."
+      "invalid": "We couldn't process the request. Please try again.",
+      "no_file": "This document has no file. Without a file it can't be accepted as evidence: reject it or ask the supplier for the document.",
+      "final_review_required": "This is high-risk evidence. A quality manager or an admin gives the final review.",
+      "verification_invalid": "Complete the checklist and the marked details."
     },
     "supplierItself": "The supplier",
     "history": {
@@ -694,6 +787,60 @@
       "download": "Download",
       "preview": "Preview of {name}",
       "info": "{name} · {size}"
+    },
+    "from": "From",
+    "facility": "Facility",
+    "company": "The company",
+    "sha256": "SHA-256 fingerprint",
+    "fromRequest": "Sent by the supplier through a request.",
+    "viewRequest": "View the request",
+    "requirements": "Requirements it covers",
+    "field": {
+      "scheme": "Scheme",
+      "choose": "Choose…",
+      "other": "Other (not GFSI-recognized)",
+      "scope": "Scope",
+      "issuingBody": "Certification body",
+      "certificateNumber": "Certificate number",
+      "facility": "Facility as named on the certificate",
+      "auditDate": "Audit date",
+      "directoryVerified": "I found it in the scheme's public directory",
+      "directoryHint": "A PDF or a typed-in scheme doesn't prove GFSI recognition.",
+      "insurer": "Insurer",
+      "policyNumber": "Policy number",
+      "coverageUsd": "Per-occurrence coverage (USD)",
+      "coverageHint": "Company minimum: {minimum}."
+    },
+    "verr": {
+      "required": "This field is required.",
+      "too_long": "It's too long (200 characters at most).",
+      "invalid_date": "The date isn't valid.",
+      "future_date": "It can't be a future date.",
+      "not_recognized": "Choose a GFSI-recognized scheme.",
+      "invalid_amount": "Type an amount in dollars, without cents.",
+      "incomplete": "Check every point on the list."
+    },
+    "impact": {
+      "title": "What changes if you accept it",
+      "hint": "Each requirement's status now and after accepting. While in review it counts for nothing.",
+      "caption": "Requirement changes",
+      "requirement": "Requirement",
+      "program": "Program",
+      "now": "Now",
+      "after": "After accepting",
+      "materials": "{count, plural, one {# material} other {# materials}}",
+      "blocking": "Blocks approval",
+      "none": "It covers no active requirement. It's kept on record but doesn't change compliance."
+    },
+    "verified": {
+      "title": "What the reviewer confirmed",
+      "checklist": "Checklist complete",
+      "gfsiRecognized": "GFSI scheme checked in the directory",
+      "gfsiNotRecognized": "Not verified as GFSI",
+      "coverage": "Coverage: {amount}",
+      "meets": "Meets the {minimum} minimum",
+      "below": "Below the {minimum} minimum",
+      "no_threshold": "The company has no minimum configured"
     }
   },
   "upload": {
@@ -903,5 +1050,257 @@
     "assess_risk": "Assess the risk",
     "assess_fsma204": "Assess whether FSMA 204 applies",
     "expiring": "{count, plural, one {Renew the one expiring soon} other {Renew # expiring soon}}"
+  },
+  "priority": {
+    "urgent": "Urgent",
+    "high": "High",
+    "normal": "Normal"
+  },
+  "requests": {
+    "new": "New request",
+    "emailLog": "Sent emails",
+    "caption": "Requests",
+    "count": "{count, plural, one {# request} other {# requests}}",
+    "col": {
+      "supplier": "Supplier and contact",
+      "progress": "Progress",
+      "reason": "Program",
+      "dates": "Sent · due",
+      "activity": "Last activity",
+      "reminder": "Next reminder",
+      "status": "Status",
+      "action": "Action"
+    },
+    "progress": "{accepted} of {requested} accepted",
+    "received": "{received} received",
+    "notSent": "Not sent",
+    "noReminder": "—",
+    "open": "Open",
+    "filterStatus": "Status",
+    "all": "All",
+    "empty": "No requests yet",
+    "emptyBody": "Ask a supplier for the documents they're missing. They get a link to upload them from a phone, with no account.",
+    "emptyFilter": "No request has this status.",
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "partially_received": "Partially received",
+      "awaiting_review": "Awaiting review",
+      "rejected_items": "Rejected items",
+      "complete": "Complete",
+      "overdue": "Overdue",
+      "cancelled": "Cancelled"
+    },
+    "reminderKind": {
+      "request_due_soon": "Due-date reminder",
+      "request_overdue": "Overdue notice",
+      "request_escalation": "Team alert"
+    },
+    "itemStatus": {
+      "requested": "Requested",
+      "uploaded": "Uploaded, in review",
+      "resubmitted": "Resubmitted, in review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "waived": "Closed without a document"
+    },
+    "form": {
+      "title": "New request",
+      "description": "Pick a supplier and the documents they're missing. They get an email in Spanish and English and a link to upload them.",
+      "supplier": "Supplier",
+      "chooseSupplier": "Choose a supplier…",
+      "gapCount": "{count, plural, one {# gap} other {# gaps}}",
+      "next": "Continue",
+      "contact": "Contact",
+      "primary": "primary",
+      "items": "What to ask for",
+      "itemsHint": "Only what this supplier is missing. Anything already in another open request can't be asked for again.",
+      "alreadyRequested": "Already requested",
+      "dueOn": "Due date",
+      "dueHint": "Between 1 and 90 days from today.",
+      "language": "Email language",
+      "languageOption": {
+        "es": "Spanish first",
+        "en": "English first"
+      },
+      "message": "Message (optional)",
+      "messageHint": "Included in the email and on the supplier's page.",
+      "saveDraft": "Save draft",
+      "send": "Send request",
+      "saving": "Saving…",
+      "noGaps": "This supplier isn't missing anything that can be requested.",
+      "noSuppliers": "No supplier has gaps to request.",
+      "noContact": "This supplier has no contacts. Add one on their profile before requesting.",
+      "summary": "Check the marked fields.",
+      "errors": {
+        "required": "This field is required.",
+        "not_a_gap": "Something you picked is no longer missing. Reload the page.",
+        "already_requested": "Something you picked is already in another open request.",
+        "invalid_date": "The date isn't valid.",
+        "date_too_soon": "Pick a date from tomorrow on.",
+        "date_too_far": "Pick a date within 90 days.",
+        "too_long": "The message is too long (1,000 characters at most)."
+      }
+    },
+    "detail": {
+      "back": "Requests",
+      "to": "To {name} · {email}",
+      "createdBy": "Created by {name} on {date}",
+      "sentBy": "Sent by {name} on {date}",
+      "due": "Due date: {date}",
+      "message": "Message",
+      "cancelled": "Cancelled: {reason}",
+      "items": "Requested documents",
+      "itemsCaption": "Requested documents",
+      "col": {
+        "requirement": "Requirement",
+        "appliesTo": "Applies to",
+        "status": "Status",
+        "documents": "Received"
+      },
+      "noDocuments": "Nothing yet",
+      "waive": "Close without a document",
+      "waiveReason": "Reason for closing it",
+      "waiveHint": "It stays on record. For example: this material is no longer bought.",
+      "confirmWaive": "Close",
+      "link": {
+        "title": "Supplier link",
+        "hint": "Opens only this request, no account, for 30 days. Share it by WhatsApp or text.",
+        "active": "Active through {date}.",
+        "lastUsed": "Last opened on {date}.",
+        "neverUsed": "Not opened yet.",
+        "none": "There's no active link.",
+        "once": "Copy it now: for security it isn't stored and can't be shown again.",
+        "copy": "Copy link",
+        "copied": "Copied",
+        "whatsapp": "Open in WhatsApp",
+        "whatsappText": "{company} is asking you for documents. Upload them here: {link}",
+        "new": "Create a new link",
+        "newHint": "The previous link stops working."
+      },
+      "send": "Send request",
+      "resend": "Send the email again",
+      "sendHint": "Sends an email in {language} and {other} to the contact, with a new link.",
+      "cancel": "Cancel request",
+      "cancelReason": "Reason for cancelling",
+      "confirmCancel": "Cancel the request",
+      "reasonErrors": {
+        "reason_required": "Write the reason (at least 5 characters).",
+        "reason_too_long": "The reason is too long (500 characters at most).",
+        "closed": "It's already closed."
+      },
+      "emails": "Emails",
+      "emailsEmpty": "No emails sent.",
+      "activity": "Activity",
+      "action": {
+        "request.created": "Created the request",
+        "request.sent": "Sent the request",
+        "request.link_created": "Created a link",
+        "request.cancelled": "Cancelled the request",
+        "request.item_waived": "Closed a document without receiving it",
+        "portal.opened": "Opened the link",
+        "portal.uploaded": "Uploaded a document",
+        "reminder.sent": "Automatic reminder"
+      },
+      "notFoundTitle": "We couldn't find this request",
+      "notFoundBody": "It may no longer exist, or the address is incomplete."
+    },
+    "log": {
+      "title": "Sent emails",
+      "description": "Every email the app sends to suppliers, as proof they were notified.",
+      "outbox": "Email sending isn't connected yet: messages are kept here and never leave the app.",
+      "caption": "Sent emails",
+      "col": {
+        "at": "Date",
+        "to": "To",
+        "template": "Message",
+        "status": "Status",
+        "id": "Identifier"
+      },
+      "template": {
+        "request": "Document request",
+        "expiry_warning": "Expiration notice",
+        "request_due_soon": "Due-date reminder",
+        "request_overdue": "Overdue notice"
+      },
+      "status": {
+        "logged": "Kept (not sent)",
+        "sent": "Sent",
+        "failed": "Failed"
+      },
+      "empty": "No emails yet."
+    },
+    "noAccess": "Your role can't send requests."
+  },
+  "email": {
+    "greeting": "Hello, {party}:",
+    "note": "Message from the company: {message}",
+    "linkIntro": "Upload the documents here (works from a phone, no account needed):",
+    "linkPrivate": "This link is for you only. Please don't share it.",
+    "signature": "Thank you,\n{company}",
+    "request": {
+      "subject": "{company} is requesting {count, plural, one {# document} other {# documents}}",
+      "body": "{company} needs {count, plural, one {# document} other {# documents}} for its supplier program. Due date: {dueOn}."
+    },
+    "expiry_warning": {
+      "subject": "{document} expires on {expiresOn}",
+      "body": "Your {document} on file with {company} expires on {expiresOn}. Please send the renewed version before that date."
+    },
+    "request_due_soon": {
+      "subject": "Reminder: documents for {company} are due on {dueOn}",
+      "body": "{count, plural, one {# document is} other {# documents are}} still pending from {company}'s request. Due date: {dueOn}."
+    },
+    "request_overdue": {
+      "subject": "Overdue: documents for {company}",
+      "body": "The due date ({dueOn}) has passed and {count, plural, one {# document is} other {# documents are}} still pending. Please send them as soon as possible."
+    }
+  },
+  "portal": {
+    "title": "Requested documents",
+    "intro": "{company} is asking {party} for these documents.",
+    "due": "Due date: {date}",
+    "expires": "This link works through {date}.",
+    "message": "Message from {company}",
+    "privacy": "This page shows only this request. Files are stored privately for {company}.",
+    "items": "Documents",
+    "status": {
+      "requested": "Still to send",
+      "uploaded": "Received, in review",
+      "resubmitted": "Received again, in review",
+      "accepted": "Accepted",
+      "rejected": "Rejected: please send it again"
+    },
+    "rejectedBecause": "Reason: {reason}",
+    "acceptedOne": "Any of these types works:",
+    "type": "Document type",
+    "issuedOn": "Issue date (optional)",
+    "expiresOn": "Expiration date (optional)",
+    "file": "File or photo",
+    "fileHint": "PDF, JPG or PNG, up to 10 MB. On a phone you can take a photo.",
+    "send": "Send",
+    "sending": "Sending…",
+    "sent": "Received. {company} will review it.",
+    "allDone": "Nothing left to send. Thank you.",
+    "denialTitle": "This link isn't available",
+    "denial": {
+      "expired": "The link has expired. Ask whoever wrote to you for a new one.",
+      "revoked": "This link was replaced by a newer one. Use the latest one you received.",
+      "cancelled": "The request was cancelled.",
+      "not_sent": "This request hasn't been sent yet.",
+      "not_found": "We couldn't find this request. Check that the link is complete.",
+      "not_waiting": "This document was already received and is in review."
+    }
+  },
+  "notifications": {
+    "bell": "Notifications",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "empty": "You have no notifications.",
+    "markRead": "Mark all as read",
+    "kind": {
+      "portal_upload": "{party} sent a document to review.",
+      "expired_escalation": "An accepted document expired.",
+      "request_escalation": "A request is a week overdue.",
+      "weekly_digest": "Weekly summary: {toReview} to review, {gaps} gaps, {expiring} expiring, {overdue} overdue requests."
+    }
   }
 }
