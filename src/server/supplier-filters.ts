@@ -5,7 +5,7 @@ import type { SupplierRow } from "./suppliers";
 
 /*
  * Supplier list filters and sort order. They live in the URL
- * (?q=&tipo=&aprobacion=&estado=&pendientes=1&orden=cumplimiento&dir=asc) so a list can be
+ * (?q=&tipo=&aprobacion=&estado=&pendientes=1&orden=cumplimiento&dir=asc&pagina=2) so a list can be
  * bookmarked or shared, and the page works without JavaScript.
  */
 
@@ -47,7 +47,11 @@ export type SupplierFilters = {
   attention: boolean;
   sort: SortKey;
   dir: SortDir;
+  /** 1-based. Any change to filters or sort goes back to page 1. */
+  page: number;
 };
+
+export const PAGE_SIZE = 15;
 
 type Params = Record<string, string | string[] | undefined>;
 
@@ -70,6 +74,7 @@ export function parseFilters(params: Params): SupplierFilters {
     attention: first(params.pendientes) === "1",
     sort: sort ?? DEFAULT_SORT.key,
     dir: dir === "asc" || dir === "desc" ? dir : sort ? "asc" : DEFAULT_SORT.dir,
+    page: Math.max(1, Math.min(10_000, Number.parseInt(first(params.pagina), 10) || 1)),
   };
 }
 
@@ -89,13 +94,14 @@ export function filtersQuery(f: SupplierFilters): string {
     p.set("orden", SORT_PARAM[f.sort]);
     p.set("dir", f.dir);
   }
+  if (f.page > 1) p.set("pagina", String(f.page));
   const query = p.toString();
   return query ? `?${query}` : "";
 }
 
 /** The filters after clicking a column: the same column flips direction, a new one starts ascending. */
 export function withSort(f: SupplierFilters, key: SortKey): SupplierFilters {
-  return { ...f, sort: key, dir: f.sort === key && f.dir === "asc" ? "desc" : "asc" };
+  return { ...f, sort: key, dir: f.sort === key && f.dir === "asc" ? "desc" : "asc", page: 1 };
 }
 
 export function hasFilters(f: SupplierFilters): boolean {
@@ -146,4 +152,36 @@ const COMPARE: Record<SortKey, (a: SupplierRow, b: SupplierRow) => number> = {
 export function sortSuppliers<Row extends SupplierRow>(rows: Row[], key: SortKey, dir: SortDir): Row[] {
   const sign = dir === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => sign * COMPARE[key](a, b) || byName(a, b));
+}
+
+/** One page of rows. A page past the end shows the last one. */
+export function paginate<Row>(rows: Row[], page: number): { rows: Row[]; page: number; pages: number } {
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const current = Math.min(Math.max(1, page), pages);
+  return { rows: rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE), page: current, pages };
+}
+
+export type SupplierStats = {
+  total: number;
+  active: number;
+  manufacturers: { total: number; active: number };
+  distributors: { total: number; active: number };
+  attention: number;
+};
+
+/** Counts for the cards above the list. A party that is both counts in each group. */
+export function supplierStats(
+  rows: Pick<SupplierRow, "type" | "approval" | "lifecycle" | "compliance">[],
+): SupplierStats {
+  const group = (type: "manufacturer" | "distributor") => {
+    const list = rows.filter((r) => r.type === type || r.type === "both");
+    return { total: list.length, active: list.filter(isActiveSupplier).length };
+  };
+  return {
+    total: rows.length,
+    active: rows.filter(isActiveSupplier).length,
+    manufacturers: group("manufacturer"),
+    distributors: group("distributor"),
+    attention: rows.filter(needsAttention).length,
+  };
 }

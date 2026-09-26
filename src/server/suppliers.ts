@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { DEFAULT_CATALOG } from "@/domain/catalog";
 import { type ComplianceSummary, evaluateCompliance, resultsForParty, summarize } from "@/domain/compliance";
 import type { RequirementResult } from "@/domain/status";
@@ -18,6 +20,12 @@ import {
   reviewQueue,
   suspendedWithActiveSources,
 } from "@/domain/operations";
+import {
+  checkNewSupplier,
+  type NewSupplierError,
+  type NewSupplierField,
+  type NewSupplierInput,
+} from "@/domain/new-supplier";
 import type { Severity } from "@/domain/nonconformity";
 
 import { type RequestContext, requirePermission } from "./context";
@@ -169,4 +177,35 @@ export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary
 export async function getSupplier(ctx: RequestContext, partyId: string): Promise<SupplierDetail | null> {
   requirePermission(ctx, "suppliers.view");
   return buildSupplierDetail(loadData(ctx), partyId, ctx.today, SAMPLE_USERS);
+}
+
+export type CreateSupplierOutcome =
+  { ok: true; id: string } | { ok: false; errors: Partial<Record<NewSupplierField, NewSupplierError>> };
+
+/** Adds a supplier in onboarding, pending approval, and records who added it. */
+export async function createSupplier(ctx: RequestContext, input: NewSupplierInput): Promise<CreateSupplierOutcome> {
+  requirePermission(ctx, "suppliers.edit");
+  const store = getSampleStore(ctx.company.slug, ctx.today);
+  const check = checkNewSupplier(
+    input,
+    store.parties.map((p) => p.name),
+  );
+  if (!check.ok) return check;
+
+  const id = `p-${randomUUID()}`;
+  store.parties.push({
+    id,
+    ...check.value,
+    lifecycle: "onboarding",
+    approval: "pending",
+    createdBy: ctx.actor.userId,
+  });
+  store.events.push({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    actorId: ctx.actor.userId,
+    action: "supplier.created",
+    partyId: id,
+  });
+  return { ok: true, id };
 }

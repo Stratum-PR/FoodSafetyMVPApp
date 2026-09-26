@@ -116,7 +116,7 @@ test("the panel summarizes compliance and expirations", async ({ page }) => {
 
   await page.getByRole("link", { name: /Ver suplidores con pendientes/ }).click();
   await expect(page).toHaveURL(/suplidores\?pendientes=1/);
-  await expect(page.getByLabel("Solo con documentos pendientes")).toBeChecked();
+  await expect(page.getByRole("link", { name: "Quitar filtro: Solo con documentos pendientes" })).toBeVisible();
 });
 
 test("the panel separates what needs action from the indicators", async ({ page }) => {
@@ -142,24 +142,96 @@ test("the active suppliers tile opens the list of active suppliers", async ({ pa
   const active = (await tile.locator("p.text-3xl").textContent())?.trim();
   await tile.click();
   await expect(page).toHaveURL(/suplidores\?estado=active/);
-  await expect(page.getByLabel("Estado")).toHaveValue("active");
+  await expect(
+    page.getByRole("link", { name: "Quitar filtro: Estado: Activos (aprobados o condicionales)" }),
+  ).toBeVisible();
   await expect(page.getByText(new RegExp(`^${active} suplidores de \\d+$`))).toBeVisible();
 });
 
-test("the supplier list searches and filters from the URL", async ({ page }) => {
+test("the supplier list filters from its cards, the filter menu and the search", async ({ page }) => {
   await page.goto(`${COMPANY}/suplidores`);
   await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();
   await expectNoSeriousA11yIssues(page);
 
-  await page.getByLabel("Tipo").selectOption("distributor");
+  await page.getByRole("link", { name: /Distribuidores/ }).click();
   await expect(page).toHaveURL(/tipo=distributor/);
+  await expect(page.getByRole("link", { name: /Distribuidores/ })).toHaveAttribute("aria-current", "true");
   await expect(page.getByText(/^\d+ suplidores de 44$/)).not.toHaveText("44 suplidores de 44");
 
-  await page.goto(`${COMPANY}/suplidores?q=no-existe-este-nombre`);
+  // Picking a filter applies it at once; there is no Apply button.
+  await page.getByRole("button", { name: "Filtros" }).click();
+  await page.getByRole("menuitemradio", { name: "Pendiente" }).click();
+  await expect(page).toHaveURL(/tipo=distributor.*aprobacion=pending|aprobacion=pending.*tipo=distributor/);
+  await expect(page.getByRole("link", { name: "Quitar filtro: Aprobación: Pendiente" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Aplicar" })).toHaveCount(0);
+
+  // Search applies once typing pauses.
+  await page.getByRole("searchbox", { name: "Buscar" }).fill("no-existe-este-nombre");
+  await expect(page).toHaveURL(/q=no-existe-este-nombre/);
   await expect(page.getByText("Ningún suplidor coincide con los filtros")).toBeVisible();
   await page.getByRole("link", { name: "Quitar filtros" }).click();
   await expect(page.getByText(/^44 suplidores de 44$/)).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Buscar" })).toHaveValue("");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("the supplier list pages through suppliers", async ({ page }) => {
+  await page.goto(`${COMPANY}/suplidores`);
+  await expect(page.getByText("Página 1 de 3")).toBeVisible();
+  await page.getByRole("link", { name: "Siguiente" }).click();
+  await expect(page).toHaveURL(/pagina=2/);
+  await expect(page.getByText("Página 2 de 3")).toBeVisible();
+});
+
+test("clicking anywhere on a supplier's row opens it", async ({ page, isMobile }) => {
+  await page.goto(`${COMPANY}/suplidores?orden=nombre&dir=asc`);
+  const row = isMobile ? page.locator("ul[aria-label] > li").first() : page.locator("table tbody tr").first();
+  const name = (await row.locator("a:not([aria-hidden])").first().textContent())!.trim();
+  // Click away from the name: on the compliance bar on computers, the card's lower edge on phones.
+  await row.scrollIntoViewIfNeeded();
+  const box = (await row.boundingBox())!;
+  await page.mouse.click(box.x + box.width - 30, box.y + box.height - 12);
+  await expect(page).toHaveURL(/\/suplidores\/[^?]+/);
+  await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
+});
+
+test("adding a supplier checks the form and opens its new page", async ({ page }) => {
+  // Another company, so the 44-supplier list the other tests count stays the same.
+  const company = "/dulces-la-palma";
+  await page.goto(`${company}/suplidores`);
+  await page.getByRole("link", { name: "Agregar suplidor" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Agregar suplidor" })).toBeVisible();
+  await expectNoSeriousA11yIssues(page);
+
+  await page.getByRole("button", { name: "Agregar suplidor" }).click();
+  await expect(page.getByText("Este campo es obligatorio.").first()).toBeVisible();
+
+  const name = `Harinas de Prueba ${Math.random().toString(36).slice(2, 8)} Inc.`;
+  await page.getByLabel("Nombre legal").fill(name);
+  await page.getByLabel("Manufacturero y distribuidor").check();
+  await page.getByLabel("Ciudad").fill("Caguas");
+  await page.getByLabel("FDA FEI (opcional)").fill("3012345678");
+  await page.getByRole("button", { name: "Agregar suplidor" }).click();
+
+  await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
+  await expect(page.getByText(/Suplidor agregado/)).toBeVisible();
+  await expect(page.getByText("Todavía no tiene requisitos")).toBeVisible();
+
+  // The same name again is refused.
+  await page.goto(`${company}/suplidores/nuevo`);
+  await page.getByLabel("Nombre legal").fill(name.toUpperCase());
+  await page.getByLabel("Manufacturero", { exact: true }).check();
+  await page.getByLabel("Ciudad").fill("Caguas");
+  await page.getByRole("button", { name: "Agregar suplidor" }).click();
+  await expect(page.getByText("Ya hay un suplidor con este nombre.")).toBeVisible();
+});
+
+test("a read-only role can't add suppliers", async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: "preview_role", value: "viewer", url: baseURL! }]);
+  await page.goto(`${COMPANY}/suplidores`);
+  await expect(page.getByRole("link", { name: "Agregar suplidor" })).toHaveCount(0);
+  await page.goto(`${COMPANY}/suplidores/nuevo`);
+  await expect(page.getByText("Tu rol no puede agregar suplidores")).toBeVisible();
 });
 
 test("clicking a column name sorts the supplier list, and again reverses it", async ({ page, isMobile }) => {
@@ -181,7 +253,8 @@ test("clicking a column name sorts the supplier list, and again reverses it", as
   expect(desc.map(Number)).toEqual([...desc.map(Number)].sort((a, b) => b - a));
 
   // Sorting keeps the filters, and filtering keeps the sort.
-  await page.getByLabel("Solo con documentos pendientes").check();
+  await page.getByRole("button", { name: "Filtros" }).click();
+  await page.getByRole("menuitemcheckbox", { name: "Solo con documentos pendientes" }).click();
   await expect(page).toHaveURL(/pendientes=1/);
   await expect(page).toHaveURL(/orden=materiales&dir=desc/);
   await page.getByRole("columnheader", { name: "Suplidor" }).getByRole("link").click();
@@ -191,9 +264,10 @@ test("clicking a column name sorts the supplier list, and again reverses it", as
 test("phones sort with the sort control", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Phone-only control.");
   await page.goto(`${COMPANY}/suplidores`);
-  await page.getByLabel("Ordenar por").selectOption("nombre");
+  await page.getByRole("button", { name: "Ordenar por" }).click();
+  await page.getByRole("menuitemradio", { name: "Suplidor" }).click();
   await expect(page).toHaveURL(/orden=nombre/);
-  const names = await page.locator("ul[aria-label] > li a").allTextContents();
+  const names = await page.locator("ul[aria-label] > li a:not([aria-hidden])").allTextContents();
   expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "es")));
 });
 
@@ -407,7 +481,7 @@ async function openSupplier(page: Page, query: string, isMobile: boolean) {
   const links = page
     .locator("main :is(tbody tr, ul[aria-label] > li)")
     .filter({ visible: true })
-    .locator("a[href*='/suplidores/p-']");
+    .locator("a[href*='/suplidores/p-']:not([aria-hidden])");
   const count = await links.count();
   await links.nth(isMobile ? count - 1 : 0).click();
   await expect(page.getByRole("heading", { level: 2, name: "Aprobación" })).toBeVisible();
@@ -467,7 +541,7 @@ test("the supplier page shows materials by document, and transposed", async ({ p
     .locator("main :is(tbody tr, ul[aria-label] > li)")
     .filter({ visible: true })
     .first()
-    .locator("a[href*='/suplidores/p-']")
+    .locator("a[href*='/suplidores/p-']:not([aria-hidden])")
     .click();
 
   const matrix = page.locator("#matriz");

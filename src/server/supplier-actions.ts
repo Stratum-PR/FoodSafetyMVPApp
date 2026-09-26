@@ -1,14 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import type { ApprovalError, ApprovalField } from "@/domain/approval";
 import { isAppError } from "@/domain/errors";
+import type { NewSupplierError, NewSupplierField } from "@/domain/new-supplier";
 import type { NonconformityError, NonconformityField } from "@/domain/nonconformity";
 import type { Denial } from "@/domain/permissions";
 
 import { changeSupplierStatus, recordNonconformity } from "./approvals";
 import { getRequestContext } from "./context";
+import { createSupplier } from "./suppliers";
 
 const text = (form: FormData, name: string) => {
   const value = form.get(name);
@@ -81,4 +84,36 @@ export async function recordNonconformityAction(
   }
   revalidatePath(`/${company}`, "layout");
   return { status: "done" };
+}
+
+export type NewSupplierFormState =
+  | { status: "idle" }
+  | { status: "invalid"; errors: Partial<Record<NewSupplierField, NewSupplierError>> }
+  | { status: "denied" };
+
+/** Adds a supplier and opens its page, where documents and materials come next. */
+export async function createSupplierAction(
+  company: string,
+  _previous: NewSupplierFormState,
+  form: FormData,
+): Promise<NewSupplierFormState> {
+  let id: string;
+  try {
+    const ctx = await getRequestContext(company);
+    const outcome = await createSupplier(ctx, {
+      name: text(form, "name"),
+      type: text(form, "type"),
+      city: text(form, "city"),
+      country: text(form, "country"),
+      fei: text(form, "fei"),
+    });
+    if (!outcome.ok) return { status: "invalid", errors: outcome.errors };
+    id = outcome.id;
+  } catch (error) {
+    if (isAppError(error)) return { status: "denied" };
+    throw error;
+  }
+  revalidatePath(`/${company}`, "layout");
+  // redirect() works by throwing, so it stays outside the try/catch.
+  redirect(`/${company}/suplidores/${encodeURIComponent(id)}?nuevo=1`);
 }

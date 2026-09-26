@@ -6,6 +6,7 @@ export type ActivityAction =
   | "document.uploaded"
   | "document.accepted"
   | "document.rejected"
+  | "supplier.created"
   | "supplier.status_changed"
   | "supplier.nonconformity_recorded";
 

@@ -137,7 +137,6 @@
     "allStages": "Todos",
     "activeStage": "Activos (aprobados o condicionales)",
     "attention": "Solo con documentos pendientes",
-    "apply": "Aplicar",
     "clear": "Quitar filtros",
     "caption": "Suplidores y su cumplimiento",
     "col": {
@@ -159,7 +158,23 @@
     "sortBy": "Ordenar por",
     "sortDir": "Orden",
     "asc": "Ascendente",
-    "desc": "Descendente"
+    "desc": "Descendente",
+    "add": "Agregar suplidor",
+    "statsLabel": "Resumen de suplidores",
+    "stats": {
+      "all": "Suplidores",
+      "manufacturers": "Manufactureros",
+      "distributors": "Distribuidores",
+      "attention": "Con documentos pendientes",
+      "attentionHint": "Vencidos, por vencer o faltantes",
+      "active": "{count, plural, one {# activo} other {# activos}}"
+    },
+    "filters": "Filtros",
+    "removeFilter": "Quitar filtro: {name}",
+    "pagination": "Páginas",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {page} de {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturero",
@@ -388,6 +403,36 @@
       "upload": "subir",
       "legend": "Leyenda",
       "inactive": "{count, plural, one {# material ofrecido} other {# materiales ofrecidos}} sin compra activa: no se le exigen documentos hasta la primera orden."
+    },
+    "created": "Suplidor agregado. Está en incorporación y pendiente de aprobación: sube sus documentos para que alguien con permiso de aprobación lo evalúe.",
+    "complianceNone": "Todavía no tiene requisitos: se calculan a partir de los materiales que se le compran.",
+    "complianceExplain": "Requisitos al día (vigentes o por vencer) de todos los que aplican por su rol, su origen y sus materiales activos. El detalle está abajo."
+  },
+  "newSupplier": {
+    "title": "Agregar suplidor",
+    "description": "Empieza con quién es y dónde está. Luego, en su página, subes sus documentos y se decide su aprobación.",
+    "name": "Nombre legal",
+    "type": "Tipo",
+    "typeHint": "El manufacturero hace el producto; el distribuidor te lo vende. Algunos hacen las dos cosas.",
+    "city": "Ciudad",
+    "country": "País",
+    "countryOther": "Otro país…",
+    "countryCode": "Código del país (2 letras, ISO)",
+    "fei": "FDA FEI (opcional)",
+    "feiHint": "El número de establecimiento de la FDA, de 7 a 10 dígitos. Se puede añadir después.",
+    "next": "Entrará en incorporación, pendiente de aprobación. No se le podrá comprar hasta que se apruebe.",
+    "save": "Agregar suplidor",
+    "saving": "Agregando…",
+    "cancel": "Cancelar",
+    "noAccessTitle": "Tu rol no puede agregar suplidores",
+    "noAccessBody": "Pídele a alguien de calidad o compras que lo agregue.",
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "too_short": "Escribe al menos 2 letras.",
+      "too_long": "Es demasiado largo.",
+      "invalid": "Revisa este valor.",
+      "duplicate": "Ya hay un suplidor con este nombre.",
+      "denied": "Tu rol no puede agregar suplidores."
     }
   },
   "lifecycle": {

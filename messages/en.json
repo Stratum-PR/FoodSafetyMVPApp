@@ -137,7 +137,6 @@
     "allStages": "All",
     "activeStage": "Active (approved or conditional)",
     "attention": "Only with pending documents",
-    "apply": "Apply",
     "clear": "Clear filters",
     "caption": "Suppliers and their compliance",
     "col": {
@@ -159,7 +158,23 @@
     "sortBy": "Sort by",
     "sortDir": "Order",
     "asc": "Ascending",
-    "desc": "Descending"
+    "desc": "Descending",
+    "add": "Add supplier",
+    "statsLabel": "Supplier summary",
+    "stats": {
+      "all": "Suppliers",
+      "manufacturers": "Manufacturers",
+      "distributors": "Distributors",
+      "attention": "With pending documents",
+      "attentionHint": "Expired, expiring or missing",
+      "active": "{count} active"
+    },
+    "filters": "Filters",
+    "removeFilter": "Remove filter: {name}",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturer",
@@ -388,6 +403,36 @@
       "upload": "upload",
       "legend": "Legend",
       "inactive": "{count, plural, one {# material offered} other {# materials offered}} but not bought now: no documents are required until the first order."
+    },
+    "created": "Supplier added. It's in onboarding, pending approval: upload its documents so someone with approval rights can evaluate it.",
+    "complianceNone": "No requirements yet: they come from the materials bought from it.",
+    "complianceExplain": "Requirements up to date (current or expiring) out of all that apply for its role, origin and active materials. Details below."
+  },
+  "newSupplier": {
+    "title": "Add supplier",
+    "description": "Start with who it is and where. Then, on its page, upload its documents and decide its approval.",
+    "name": "Legal name",
+    "type": "Type",
+    "typeHint": "The manufacturer makes the product; the distributor sells it to you. Some do both.",
+    "city": "City",
+    "country": "Country",
+    "countryOther": "Other country…",
+    "countryCode": "Country code (2 letters, ISO)",
+    "fei": "FDA FEI (optional)",
+    "feiHint": "The FDA establishment number, 7 to 10 digits. You can add it later.",
+    "next": "It starts in onboarding, pending approval. It can't be bought from until it's approved.",
+    "save": "Add supplier",
+    "saving": "Adding…",
+    "cancel": "Cancel",
+    "noAccessTitle": "Your role can't add suppliers",
+    "noAccessBody": "Ask someone in quality or purchasing to add it.",
+    "errors": {
+      "required": "This field is required.",
+      "too_short": "Type at least 2 letters.",
+      "too_long": "It's too long.",
+      "invalid": "Check this value.",
+      "duplicate": "There's already a supplier with this name.",
+      "denied": "Your role can't add suppliers."
     }
   },
   "lifecycle": {

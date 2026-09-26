@@ -178,13 +178,31 @@ export default async function Page({ params, searchParams }: Props) {
         </div>
       </div>
 
+      {query.nuevo === "1" ? (
+        <p role="status" className="rounded-lg bg-status-current-bg px-4 py-3 text-sm font-medium text-status-current">
+          {t("created")}
+        </p>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <div className="rounded-xl border bg-card p-4">
           <p className="text-sm font-medium text-muted-foreground">{t("compliance")}</p>
-          <p className={cn("mt-1 text-4xl font-bold tabular-nums", TONE_TEXT[complianceTone(compliance.percent)])}>
-            {compliance.percent}%
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("complianceHint", { met, total: compliance.total })}</p>
+          {compliance.total === 0 ? (
+            <>
+              <p className="mt-1 text-4xl font-bold text-muted-foreground">—</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("complianceNone")}</p>
+            </>
+          ) : (
+            <>
+              <p className={cn("mt-1 text-4xl font-bold tabular-nums", TONE_TEXT[complianceTone(compliance.percent)])}>
+                {compliance.percent}%
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("complianceHint", { met, total: compliance.total })}
+              </p>
+            </>
+          )}
+          <p className="mt-1 text-xs text-muted-foreground">{t("complianceExplain")}</p>
           <div aria-hidden className="mt-3 flex h-2 overflow-hidden rounded-full bg-muted">
             {STATUSES.map((s) => (
               <span

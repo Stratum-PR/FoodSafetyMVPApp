@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { filtersQuery, filterSuppliers, hasFilters, parseFilters, sortSuppliers, withSort } from "./supplier-filters";
+import {
+  filtersQuery,
+  filterSuppliers,
+  hasFilters,
+  PAGE_SIZE,
+  paginate,
+  parseFilters,
+  sortSuppliers,
+  supplierStats,
+  withSort,
+} from "./supplier-filters";
 import type { SupplierRow } from "./suppliers";
 
 function row(id: string, extra: Partial<SupplierRow> = {}): SupplierRow {
@@ -40,6 +50,7 @@ describe("supplier filters", () => {
       attention: false,
       sort: "compliance",
       dir: "asc",
+      page: 1,
     });
     const f = parseFilters({ q: "  azul ", tipo: "distributor", aprobacion: "hacked", pendientes: "1" });
     expect(f).toMatchObject({ q: "azul", type: "distributor", approval: "all", attention: true });
@@ -136,5 +147,36 @@ describe("supplier sorting", () => {
     const copy = [...rows];
     sortSuppliers(rows, "name", "desc");
     expect(rows).toEqual(copy);
+  });
+});
+
+describe("supplier pages", () => {
+  it("reads the page from the URL and goes back to page 1 when the sort changes", () => {
+    expect(parseFilters({ pagina: "3" }).page).toBe(3);
+    expect(parseFilters({ pagina: "-2" }).page).toBe(1);
+    expect(parseFilters({ pagina: "abc" }).page).toBe(1);
+    expect(filtersQuery(parseFilters({ pagina: "2" }))).toBe("?pagina=2");
+    expect(withSort(parseFilters({ pagina: "3" }), "name").page).toBe(1);
+  });
+
+  it("cuts the list in pages and keeps a page past the end on the last one", () => {
+    const list = Array.from({ length: PAGE_SIZE * 2 + 3 }, (_, i) => i);
+    expect(paginate(list, 1)).toMatchObject({ page: 1, pages: 3 });
+    expect(paginate(list, 3).rows).toEqual(list.slice(PAGE_SIZE * 2));
+    expect(paginate(list, 99).page).toBe(3);
+    expect(paginate([], 1)).toEqual({ rows: [], page: 1, pages: 1 });
+  });
+});
+
+describe("supplier stats", () => {
+  it("counts manufacturers and distributors, a party that is both in each", () => {
+    const more = [...rows, row("Harinas Loma", { lifecycle: "inactive" })];
+    expect(supplierStats(more)).toEqual({
+      total: 4,
+      active: 2,
+      manufacturers: { total: 3, active: 1 },
+      distributors: { total: 2, active: 1 },
+      attention: 1,
+    });
   });
 });
