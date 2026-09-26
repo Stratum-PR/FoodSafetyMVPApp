@@ -68,7 +68,10 @@ export async function SupplierMaterials({
             {s.counterpart ? (
               <>
                 {s.role === "manufacturer" ? t("distributedBy") : t("madeBy")}{" "}
-                <Link href={supplierHref(company, s.counterpart.id)} className="text-primary hover:underline">
+                <Link
+                  href={supplierHref(company, s.counterpart.id)}
+                  className="text-primary underline underline-offset-2"
+                >
                   {s.counterpart.name}
                 </Link>
               </>

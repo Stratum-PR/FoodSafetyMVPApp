@@ -138,20 +138,22 @@ test("the supplier list searches and filters from the URL", async ({ page }) => 
 test("clicking a column name sorts the supplier list, and again reverses it", async ({ page, isMobile }) => {
   test.skip(isMobile, "Phones sort with the 'Ordenar por' control; column headers are desktop only.");
   await page.goto(`${COMPANY}/suplidores`);
-  const header = page.getByRole("columnheader", { name: "Materiales activos" });
+  const header = page.getByRole("columnheader", { name: "Materiales", exact: true });
   await expect(header).toHaveAttribute("aria-sort", "none");
 
   await header.getByRole("link").click();
   await expect(page).toHaveURL(/orden=materiales&dir=asc/);
   await expect(header).toHaveAttribute("aria-sort", "ascending");
-  const asc = await page.locator("table tbody tr td:nth-child(4)").allTextContents();
-  expect(asc.map(Number)).toEqual([...asc.map(Number)].sort((a, b) => a - b));
+  // Cells read "N activos …": sort by the number of active materials.
+  const active = (cells: string[]) => cells.map((c) => Number.parseInt(c, 10));
+  const asc = active(await page.locator("table tbody tr td:nth-child(4)").allTextContents());
+  expect(asc).toEqual([...asc].sort((a, b) => a - b));
 
   await header.getByRole("link").click();
   await expect(page).toHaveURL(/orden=materiales&dir=desc/);
   await expect(header).toHaveAttribute("aria-sort", "descending");
-  const desc = await page.locator("table tbody tr td:nth-child(4)").allTextContents();
-  expect(desc.map(Number)).toEqual([...desc.map(Number)].sort((a, b) => b - a));
+  const desc = active(await page.locator("table tbody tr td:nth-child(4)").allTextContents());
+  expect(desc).toEqual([...desc].sort((a, b) => b - a));
 
   // Sorting keeps the filters, and filtering keeps the sort.
   await page.getByLabel("Solo con documentos pendientes").check();
@@ -166,7 +168,10 @@ test("phones sort with the sort control", async ({ page, isMobile }) => {
   await page.goto(`${COMPANY}/suplidores`);
   await page.getByLabel("Ordenar por").selectOption("nombre");
   await expect(page).toHaveURL(/orden=nombre/);
-  const names = await page.locator("ul[aria-label] > li a").allTextContents();
+  // Each card's first link is the supplier (others go to its materials or next step).
+  const cards = page.locator("main ul[aria-label] > li");
+  const names: string[] = [];
+  for (let i = 0; i < (await cards.count()); i++) names.push((await cards.nth(i).locator("a").first().textContent())!);
   expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "es")));
 });
 
@@ -178,13 +183,16 @@ test("a supplier page shows its requirements, materials and documents", async ({
 
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   await expect(page).toHaveTitle(`${name} · Stratum`);
-  for (const section of ["Documentos del suplidor", "Materiales", "Documentos recibidos"]) {
-    await expect(page.getByRole("heading", { level: 2, name: section })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Aprobación", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Documentos", exact: true }).last().click();
+  await expect(page).toHaveURL(/tab=documentos/);
+  for (const section of ["Requisitos", "Documentos recibidos"]) {
+    await expect(page.getByRole("heading", { level: 2, name: section, exact: true })).toBeVisible();
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await expectNoSeriousA11yIssues(page);
 
-  await page.getByRole("link", { name: "Suplidores" }).first().click();
+  await page.goto(`${COMPANY}/suplidores`);
   await expect(page).toHaveURL(`${COMPANY}/suplidores`);
 });
 
@@ -203,13 +211,15 @@ const APPROVAL_COMPANY = "/dulces-la-palma";
 
 async function openSupplier(page: Page, query: string, isMobile: boolean) {
   await page.goto(`${APPROVAL_COMPANY}/suplidores?${query}`);
-  const links = page
-    .locator("main :is(tbody tr, ul[aria-label] > li)")
-    .filter({ visible: true })
-    .locator("a[href*='/suplidores/p-']");
-  const count = await links.count();
-  await links.nth(isMobile ? count - 1 : 0).click();
-  await expect(page.getByRole("heading", { level: 2, name: "Aprobación" })).toBeVisible();
+  const rows = page.locator("main :is(tbody tr, ul[aria-label] > li)").filter({ visible: true });
+  const count = await rows.count();
+  // The first link of a row is the supplier (others go to a tab of it).
+  await rows
+    .nth(isMobile ? count - 1 : 0)
+    .locator("a[href*='/suplidores/p-']")
+    .first()
+    .click();
+  await expect(page.getByRole("heading", { level: 2, name: "Aprobación", exact: true })).toBeVisible();
 }
 
 test("a pending supplier is approved with conditions, and the decision is recorded", async ({ page, isMobile }) => {
@@ -218,9 +228,12 @@ test("a pending supplier is approved with conditions, and the decision is record
   await page.getByRole("button", { name: "Guardar decisión" }).click();
   await expect(page.getByText("Este campo es obligatorio.").first()).toBeVisible();
 
-  await page.getByLabel("Condiciones", { exact: true }).fill("Enviar el certificado GFSI vigente.");
+  await page.getByLabel("Cuestionario", { exact: true }).check();
+  await page.locator("#ap-conditions").fill("Enviar el certificado GFSI vigente.");
   await page.locator("#ap-reviewBy").fill("2026-12-15");
-  await page.getByLabel("Motivo", { exact: true }).fill("Falta el certificado del año en curso.");
+  const owner = page.locator("#ap-owner");
+  if ((await owner.evaluate((el) => el.tagName)) === "SELECT") await owner.selectOption({ index: 1 });
+  await page.locator("#ap-reason").fill("Falta el certificado del año en curso.");
   await page.getByRole("button", { name: "Guardar decisión" }).click();
 
   await expect(page.getByText(/Última decisión: Aprobar con condiciones/)).toBeVisible();
@@ -236,13 +249,15 @@ test("the suspended supplier shows why, and its nonconformities", async ({ page 
       .filter({ visible: true })
       .first(),
   ).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "No conformidades" })).toBeVisible();
   // Its three nonconformities in five months trigger the warning.
   await expect(page.getByText(/3 no conformidades en los últimos 12 meses/)).toBeVisible();
+  await page.goto(`${page.url().split("?")[0]}?tab=incidencias`);
+  await expect(page.getByRole("heading", { level: 2, name: "No conformidades" })).toBeVisible();
 });
 
 test("recording a nonconformity adds it to the supplier", async ({ page, isMobile }) => {
   await openSupplier(page, "aprobacion=approved", isMobile);
+  await page.goto(`${page.url().split("?")[0]}?tab=incidencias`);
   await page.getByText("Registrar no conformidad").click();
   const description = `Entrega con sello roto (${isMobile ? "teléfono" : "computadora"}).`;
   await page.getByLabel("Gravedad").selectOption("major");
@@ -256,6 +271,8 @@ test("a read-only role sees the approval but can't decide", async ({ page, conte
   await openSupplier(page, "aprobacion=approved", isMobile);
   await expect(page.getByText("Tu rol puede ver el estado del suplidor, pero no aprobarlo.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Guardar decisión" })).toHaveCount(0);
+  await page.goto(`${page.url().split("?")[0]}?tab=incidencias`);
+  await expect(page.getByRole("heading", { level: 2, name: "No conformidades" })).toBeVisible();
   await expect(page.getByText("Registrar no conformidad")).toHaveCount(0);
 });
 
@@ -267,7 +284,10 @@ test("the supplier page shows materials by document, and transposed", async ({ p
     .filter({ visible: true })
     .first()
     .locator("a[href*='/suplidores/p-']")
+    .first()
     .click();
+  await expect(page).toHaveURL(/\/suplidores\/p-/);
+  await page.goto(`${page.url().split("?")[0]}?tab=materiales`);
 
   const matrix = page.locator("#matriz");
   await expect(matrix.getByRole("heading", { name: "Documentos por material" })).toBeVisible();

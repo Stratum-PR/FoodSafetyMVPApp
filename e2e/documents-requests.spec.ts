@@ -29,6 +29,8 @@ const rows = (page: Page, caption: string) =>
 async function queue(page: Page): Promise<string[]> {
   await page.goto(`${COMPANY}/documentos`);
   const list = rows(page, "Documentos");
+  // The list streams in after the page loads; wait for it before counting.
+  await expect(list.first()).toBeVisible({ timeout: 15_000 });
   const hrefs: string[] = [];
   for (let i = 0; i < (await list.count()); i++) {
     hrefs.push((await list.nth(i).locator("a[href*='/documentos/']").first().getAttribute("href"))!);
