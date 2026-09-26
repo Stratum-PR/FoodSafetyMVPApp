@@ -13,6 +13,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  // The supplier and document lists are large sample pages; with every test running at once
+  // on a cold server, navigation can take longer than the 5-second default.
+  expect: { timeout: 10_000 },
   use: {
     baseURL,
     locale: "es-PR",

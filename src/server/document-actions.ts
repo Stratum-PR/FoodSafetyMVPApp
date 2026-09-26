@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isAppError } from "@/domain/errors";
+import type { VerificationError, VerificationField, VerificationInput } from "@/domain/evidence";
 import type { ReviewDenial } from "@/domain/review";
 import type { UploadError, UploadField } from "@/domain/upload";
 
@@ -58,7 +59,11 @@ export async function uploadDocumentAction(
 export type ReviewFormState =
   | { status: "idle" }
   | { status: "done"; decision: "accept" | "reject"; superseded: number }
-  | { status: "error"; code: ReviewDenial | "not_found" | "invalid" };
+  | {
+      status: "error";
+      code: ReviewDenial | "not_found" | "invalid";
+      errors?: Partial<Record<VerificationField, VerificationError>>;
+    };
 
 /**
  * The Aceptar / Rechazar form. company and documentId are bound on the server page; the
@@ -79,8 +84,21 @@ export async function reviewDocumentAction(
 
   try {
     const ctx = await getRequestContext(company);
-    const outcome = await decideDocument(ctx, documentId, decision, reason ?? "");
-    if (!outcome.ok) return { status: "error", code: outcome.denial };
+    const verification: VerificationInput = {
+      checklist: form.getAll("checklist").filter((v): v is string => typeof v === "string"),
+      scheme: text(form, "scheme"),
+      scope: text(form, "scope"),
+      issuingBody: text(form, "issuingBody"),
+      certificateNumber: text(form, "certificateNumber"),
+      facility: text(form, "facility"),
+      auditDate: text(form, "auditDate"),
+      directoryVerified: form.get("directoryVerified") === "on",
+      insurer: text(form, "insurer"),
+      policyNumber: text(form, "policyNumber"),
+      coverageUsd: text(form, "coverageUsd"),
+    };
+    const outcome = await decideDocument(ctx, documentId, decision, reason ?? "", verification);
+    if (!outcome.ok) return { status: "error", code: outcome.denial, errors: outcome.errors };
     // Compliance, the panel and the supplier pages all change with a decision.
     revalidatePath(`/${company}`, "layout");
     return { status: "done", decision, superseded: outcome.superseded };

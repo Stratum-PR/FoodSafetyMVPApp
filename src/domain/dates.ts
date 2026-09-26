@@ -50,3 +50,8 @@ export function todayIn(timeZone: string, now: Date = new Date()): IsoDate {
   // en-CA formats as YYYY-MM-DD.
   return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 }
+
+/** Day of the week: 0 = Sunday … 6 = Saturday. */
+export function weekday(date: IsoDate): number {
+  return toUtc(date).getUTCDay();
+}

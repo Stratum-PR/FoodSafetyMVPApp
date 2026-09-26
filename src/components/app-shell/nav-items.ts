@@ -18,8 +18,31 @@ export function navHref(company: string, segment: string): string {
   return segment ? `/${company}/${segment}` : `/${company}`;
 }
 
-export function supplierHref(company: string, supplierId: string): string {
-  return `/${company}/suplidores/${encodeURIComponent(supplierId)}`;
+/** Supplier page tabs, with their Spanish URL value. */
+export const SUPPLIER_TABS = [
+  "resumen",
+  "instalaciones",
+  "materiales",
+  "documentos",
+  "incidencias",
+  "historial",
+] as const;
+export type SupplierTab = (typeof SUPPLIER_TABS)[number];
+
+/** A supplier's page, optionally on a tab and at an anchor (e.g. one requirement's row). */
+export function supplierHref(
+  company: string,
+  supplierId: string,
+  at: { tab?: SupplierTab; anchor?: string } = {},
+): string {
+  const base = `/${company}/suplidores/${encodeURIComponent(supplierId)}`;
+  const tab = at.tab && at.tab !== "resumen" ? `?tab=${at.tab}` : "";
+  return `${base}${tab}${at.anchor ? `#${at.anchor}` : ""}`;
+}
+
+/** A stable HTML id for an obligation row, from its key ("site:p-m1-site-legacy|facility_registration"). */
+export function obligationAnchor(key: string): string {
+  return `req-${key.replace(/[^A-Za-z0-9_-]+/g, "-")}`;
 }
 
 export function documentHref(company: string, documentId: string): string {

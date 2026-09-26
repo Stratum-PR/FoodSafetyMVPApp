@@ -1,22 +1,30 @@
 import { SearchX } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 
 import { navHref, supplierHref } from "@/components/app-shell/nav-items";
-import { ComplianceBar } from "@/components/compliance-bar";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { sectionText } from "@/components/section-placeholder";
 import { ApprovalBadge } from "@/components/suppliers/approval-badge";
-import { ComplianceGaps } from "@/components/suppliers/compliance-gaps";
 import { SupplierFiltersForm } from "@/components/suppliers/supplier-filters-form";
+import {
+  CertificationBadge,
+  Fsma204Badge,
+  NextActionLink,
+  RequirementsSummaryText,
+  RiskBadge,
+} from "@/components/suppliers/summary-badges";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
 import {
   filtersQuery,
   filterSuppliers,
   hasFilters,
+  paginate,
   parseFilters,
   type SortKey,
   sortSuppliers,
@@ -31,17 +39,21 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({ params, searchParams }: PageProps<"/[company]/suplidores">) {
   const [{ company }, query] = await Promise.all([params, searchParams]);
   const ctx = await getRequestContext(company);
-  const [rows, text, t, tType] = await Promise.all([
+  const [rows, text, t, tType, format] = await Promise.all([
     listSuppliers(ctx),
     sectionText("suppliers"),
     getTranslations("suppliers"),
     getTranslations("partyType"),
+    getFormatter(),
   ]);
   const filters = parseFilters(query);
-  const shown = sortSuppliers(filterSuppliers(rows, filters), filters.sort, filters.dir);
+  const matching = sortSuppliers(filterSuppliers(rows, filters), filters.sort, filters.dir);
+  const page = paginate(matching, filters.page);
   const action = navHref(company, "suplidores");
+  // Noon UTC is the same calendar day in Puerto Rico.
+  const date = (iso: string) => format.dateTime(new Date(`${iso}T12:00:00Z`), { dateStyle: "medium" });
 
-  // Every column sorts; clicking the current one flips the direction. Filters are kept.
+  // Sortable columns; clicking the current one flips the direction. Filters are kept.
   const sort = (key: SortKey) => ({
     href: `${action}${filtersQuery(withSort(filters, key))}`,
     dir: filters.sort === key ? filters.dir : null,
@@ -53,51 +65,118 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
       header: t("col.name"),
       primary: true,
       sort: sort("name"),
+      className: "min-w-48",
       cell: (r) => (
         <div className="min-w-0">
-          <Link href={supplierHref(company, r.id)} className="font-semibold text-primary hover:underline">
+          <Link href={supplierHref(company, r.id)} className="font-semibold break-words text-primary hover:underline">
             {r.name}
           </Link>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-normal text-muted-foreground">
             <span>{r.country === "PR" ? r.city : `${r.city} · ${r.country}`}</span>
+            <span>{tType(r.type)}</span>
             {r.foreign ? (
               <span className="rounded bg-secondary px-1.5 py-0.5 font-semibold text-secondary-foreground">
                 {t("foreign")}
               </span>
             ) : null}
-            {r.lifecycle === "inactive" ? (
-              <span className="rounded border px-1.5 py-0.5 font-semibold">{t("inactive")}</span>
-            ) : null}
           </div>
         </div>
       ),
     },
-    { key: "type", header: t("col.type"), sort: sort("type"), cell: (r) => tType(r.type) },
     {
       key: "approval",
       header: t("col.approval"),
       sort: sort("approval"),
-      cell: (r) => <ApprovalBadge approval={r.approval} />,
-    },
-    {
-      key: "sources",
-      header: t("col.sources"),
-      sort: sort("sources"),
-      cell: (r) => r.activeSources,
-      className: "tabular-nums",
-    },
-    {
-      key: "compliance",
-      header: t("col.compliance"),
-      sort: sort("compliance"),
       cell: (r) => (
-        <div className="inline-flex flex-col items-end gap-0.5 md:items-start">
-          <ComplianceBar percent={r.compliance.percent} />
-          <ComplianceGaps summary={r.compliance} />
-        </div>
+        <span className="inline-grid justify-items-end gap-0.5 md:justify-items-start">
+          <ApprovalBadge state={r.summary.state} />
+          {r.summary.reviewBy && ["approved", "conditional"].includes(r.summary.state) ? (
+            <span className="text-xs text-muted-foreground">{t("reviewBy", { date: date(r.summary.reviewBy) })}</span>
+          ) : r.summary.decidedOn ? (
+            <span className="text-xs text-muted-foreground">{t("decidedOn", { date: date(r.summary.decidedOn) })}</span>
+          ) : null}
+        </span>
       ),
     },
+    {
+      key: "risk",
+      header: t("col.risk"),
+      sort: sort("risk"),
+      cell: (r) => <RiskBadge rating={r.summary.risk.rating} />,
+    },
+    {
+      key: "materials",
+      header: t("col.materials"),
+      sort: sort("materials"),
+      cell: (r) => (
+        <span className="inline-grid justify-items-end gap-0.5 md:justify-items-start">
+          <Link
+            href={supplierHref(company, r.id, { tab: "materiales" })}
+            className="text-sm font-semibold text-primary tabular-nums hover:underline"
+          >
+            {t("materialsActive", { count: r.summary.materials.active })}
+          </Link>
+          {r.summary.materials.active ? (
+            <span className="text-xs text-muted-foreground">
+              {t("materialsQualified", {
+                qualified: r.summary.materials.qualified,
+                notAssessed: r.summary.materials.notAssessed,
+              })}
+            </span>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      key: "certification",
+      header: t("col.certification"),
+      cell: (r) => (
+        <span className="inline-grid justify-items-end gap-0.5 md:justify-items-start">
+          <CertificationBadge status={r.summary.certification.status} />
+          {r.summary.certification.required ? (
+            <span className="text-xs text-muted-foreground">
+              {t("sitesVerified", {
+                verified: r.summary.certification.verified,
+                required: r.summary.certification.required,
+              })}
+            </span>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      key: "requirements",
+      header: t("col.requirements"),
+      sort: sort("requirements"),
+      cell: (r) => <RequirementsSummaryText summary={r.summary.requirements} />,
+    },
+    { key: "fsma204", header: t("col.fsma204"), cell: (r) => <Fsma204Badge status={r.summary.fsma204.status} /> },
+    {
+      key: "issues",
+      header: t("col.issues"),
+      sort: sort("issues"),
+      className: "tabular-nums",
+      cell: (r) =>
+        r.summary.issues.open ? (
+          <Link
+            href={supplierHref(company, r.id, { tab: "incidencias" })}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            {t("issuesOpen", { count: r.summary.issues.open })}
+          </Link>
+        ) : (
+          <span className="text-xs text-muted-foreground">{t("issuesNone")}</span>
+        ),
+    },
+    {
+      key: "next",
+      header: t("col.nextAction"),
+      className: "min-w-40",
+      cell: (r) => <NextActionLink company={company} summary={r.summary} dateText={date} />,
+    },
   ];
+
+  const pageHref = (n: number) => `${action}${filtersQuery({ ...filters, page: n })}`;
 
   return (
     <div className="grid grid-cols-1 gap-6">
@@ -109,14 +188,46 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
         filtered={hasFilters(filters)}
         clearHref={`${action}${filtersQuery({ ...parseFilters({}), sort: filters.sort, dir: filters.dir })}`}
       />
-      <p className="text-sm text-muted-foreground" aria-live="polite">
-        {t("count", { shown: shown.length, total: rows.length })}
-      </p>
-      {shown.length ? (
-        <ResponsiveTable columns={columns} rows={shown} rowKey={(r) => r.id} caption={t("caption")} />
+      <div className="grid gap-1">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {t("count", { shown: matching.length, total: rows.length })}
+        </p>
+        <p className="text-xs text-muted-foreground">{t("requirementsHint")}</p>
+      </div>
+      {page.rows.length ? (
+        <ResponsiveTable columns={columns} rows={page.rows} rowKey={(r) => r.id} caption={t("caption")} />
       ) : (
         <EmptyState icon={SearchX} title={t("emptyTitle")} body={t("emptyBody")} />
       )}
+      {page.pages > 1 ? (
+        <nav aria-label={t("pagination")} className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={pageHref(page.page - 1)}
+            aria-disabled={page.page === 1}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              page.page === 1 && "pointer-events-none opacity-50",
+            )}
+            tabIndex={page.page === 1 ? -1 : undefined}
+          >
+            {t("previous")}
+          </Link>
+          <span className="text-sm text-muted-foreground" aria-current="page">
+            {t("pageOf", { page: page.page, pages: page.pages })}
+          </span>
+          <Link
+            href={pageHref(page.page + 1)}
+            aria-disabled={page.page === page.pages}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              page.page === page.pages && "pointer-events-none opacity-50",
+            )}
+            tabIndex={page.page === page.pages ? -1 : undefined}
+          >
+            {t("next")}
+          </Link>
+        </nav>
+      ) : null}
     </div>
   );
 }

@@ -46,13 +46,16 @@ export function UploadForm({
 
   const supplier = suppliers.find((s) => s.id === partyId);
   const material = supplier?.materials.find((m) => m.sourceId === about);
+  const site = supplier?.sites.find((s) => s.siteId === about);
   const subject = !supplier
     ? null
     : about === "party"
       ? ({ kind: "party", partyId } as const)
-      : material
-        ? ({ kind: "source", sourceId: material.sourceId } as const)
-        : null;
+      : site
+        ? ({ kind: "site", siteId: site.siteId } as const)
+        : material
+          ? ({ kind: "source", sourceId: material.sourceId } as const)
+          : null;
   const fitting = subject ? types.filter((type) => typeFitsSubject(type, subject, material?.kind ?? null)) : [];
   const type = fitting.find((x) => x.code === typeCode);
 
@@ -152,11 +155,24 @@ export function UploadForm({
           className={SELECT}
         >
           <option value="party">{t("aboutParty")}</option>
-          {supplier?.materials.map((m) => (
-            <option key={m.sourceId} value={m.sourceId}>
-              {m.name} ({m.code}) · {m.role === "makes" ? t("makes") : t("sells")}
-            </option>
-          ))}
+          {supplier?.sites.length ? (
+            <optgroup label={t("aboutSites")}>
+              {supplier.sites.map((s) => (
+                <option key={s.siteId} value={s.siteId}>
+                  {s.name ?? t("legacySite")} · {s.city}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {supplier?.materials.length ? (
+            <optgroup label={t("aboutMaterials")}>
+              {supplier.materials.map((m) => (
+                <option key={m.sourceId} value={m.sourceId}>
+                  {m.name} ({m.code}) · {m.role === "makes" ? t("makes") : t("sells")}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
       </div>
 

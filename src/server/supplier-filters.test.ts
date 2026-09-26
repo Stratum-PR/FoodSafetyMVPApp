@@ -1,9 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { filtersQuery, filterSuppliers, hasFilters, parseFilters, sortSuppliers, withSort } from "./supplier-filters";
+import { summarizeObligations } from "@/domain/obligations";
+import type { SupplierSummary } from "@/domain/supplier-summary";
+
+import {
+  filtersQuery,
+  filterSuppliers,
+  hasFilters,
+  PAGE_SIZE,
+  paginate,
+  parseFilters,
+  sortSuppliers,
+  withSort,
+} from "./supplier-filters";
 import type { SupplierRow } from "./suppliers";
 
-function row(id: string, extra: Partial<SupplierRow> = {}): SupplierRow {
+type Extra = Omit<Partial<SupplierRow>, "summary"> & { summary?: Partial<SupplierSummary> };
+
+function summary(extra: Partial<SupplierSummary> = {}): SupplierSummary {
+  return {
+    partyId: "p",
+    state: "approved",
+    risk: { rating: "low" },
+    materials: { active: 1, qualified: 1, notAssessed: 0, total: 1 },
+    certification: { status: "verified", required: 1, verified: 1 },
+    sites: [],
+    requirements: { ...summarizeObligations([]), applicable: 3, met: 3, percent: 100 },
+    fsma204: { status: "not_assessed" },
+    issues: { open: 0, serious: 0 },
+    nextAction: null,
+    ...extra,
+  };
+}
+
+function row(id: string, extra: Extra = {}): SupplierRow {
   return {
     id,
     name: id,
@@ -11,21 +41,25 @@ function row(id: string, extra: Partial<SupplierRow> = {}): SupplierRow {
     city: "Caguas",
     country: "PR",
     foreign: false,
-    lifecycle: "monitoring",
-    approval: "approved",
-    activeSources: 1,
-    compliance: { total: 3, percent: 100, counts: { current: 3, expiring: 0, expired: 0, missing: 0 } },
     ...extra,
+    summary: summary(extra.summary),
   };
 }
 
+const gaps = { ...summarizeObligations([]), applicable: 4, met: 2, percent: 50 };
+gaps.counts = { ...gaps.counts, current: 2, expired: 1, missing: 1 };
+
 const rows = [
   row("Molinos Brisa Azul"),
-  row("Distribuidora Cañaveral", { type: "distributor", city: "Bayamón" }),
+  row("Distribuidora Cañaveral", { type: "distributor", city: "Bayamón", summary: { risk: { rating: null } } }),
   row("Frutas Monte Claro", {
     type: "both",
-    approval: "pending",
-    compliance: { total: 4, percent: 50, counts: { current: 2, expiring: 0, expired: 1, missing: 1 } },
+    summary: {
+      state: "under_verification",
+      requirements: gaps,
+      risk: { rating: "high" },
+      issues: { open: 2, serious: 1 },
+    },
   }),
 ];
 const names = (list: SupplierRow[]) => list.map((r) => r.name);
@@ -36,12 +70,15 @@ describe("supplier filters", () => {
       q: "",
       type: "all",
       approval: "all",
+      risk: "all",
       attention: false,
-      sort: "compliance",
+      expiring: false,
+      sort: "requirements",
       dir: "asc",
+      page: 1,
     });
-    const f = parseFilters({ q: "  azul ", tipo: "distributor", aprobacion: "hacked", pendientes: "1" });
-    expect(f).toMatchObject({ q: "azul", type: "distributor", approval: "all", attention: true });
+    const f = parseFilters({ q: "  azul ", tipo: "distributor", aprobacion: "hacked", pendientes: "1", pagina: "-3" });
+    expect(f).toMatchObject({ q: "azul", type: "distributor", approval: "all", attention: true, page: 1 });
     expect(hasFilters(f)).toBe(true);
     expect(hasFilters(parseFilters({ tipo: ["manufacturer", "x"] }))).toBe(true);
   });
@@ -56,14 +93,14 @@ describe("supplier filters", () => {
       "Distribuidora Cañaveral",
       "Frutas Monte Claro",
     ]);
-    expect(names(filterSuppliers(rows, parseFilters({ tipo: "manufacturer" })))).toEqual([
-      "Molinos Brisa Azul",
-      "Frutas Monte Claro",
-    ]);
   });
 
-  it("filters by approval and by pending documents", () => {
-    expect(names(filterSuppliers(rows, parseFilters({ aprobacion: "pending" })))).toEqual(["Frutas Monte Claro"]);
+  it("filters by approval state, risk (including not assessed) and open requirements", () => {
+    expect(names(filterSuppliers(rows, parseFilters({ aprobacion: "under_verification" })))).toEqual([
+      "Frutas Monte Claro",
+    ]);
+    expect(names(filterSuppliers(rows, parseFilters({ riesgo: "not_assessed" })))).toEqual(["Distribuidora Cañaveral"]);
+    expect(names(filterSuppliers(rows, parseFilters({ riesgo: "high" })))).toEqual(["Frutas Monte Claro"]);
     expect(names(filterSuppliers(rows, parseFilters({ pendientes: "1" })))).toEqual(["Frutas Monte Claro"]);
   });
 });
@@ -71,21 +108,21 @@ describe("supplier filters", () => {
 describe("supplier sorting", () => {
   it("reads the sort from the URL, in Spanish, and ignores unknown columns", () => {
     expect(parseFilters({ orden: "nombre" })).toMatchObject({ sort: "name", dir: "asc" });
-    expect(parseFilters({ orden: "materiales", dir: "desc" })).toMatchObject({ sort: "sources", dir: "desc" });
-    expect(parseFilters({ orden: "password", dir: "sideways" })).toMatchObject({ sort: "compliance", dir: "asc" });
+    expect(parseFilters({ orden: "materiales", dir: "desc" })).toMatchObject({ sort: "materials", dir: "desc" });
+    expect(parseFilters({ orden: "password", dir: "sideways" })).toMatchObject({ sort: "requirements", dir: "asc" });
   });
 
-  it("flips the direction on the same column and starts ascending on a new one", () => {
-    const f = parseFilters({ orden: "nombre" });
-    expect(withSort(f, "name")).toMatchObject({ sort: "name", dir: "desc" });
+  it("flips the direction on the same column, starts ascending on a new one, and goes back to page 1", () => {
+    const f = parseFilters({ orden: "nombre", pagina: "3" });
+    expect(withSort(f, "name")).toMatchObject({ sort: "name", dir: "desc", page: 1 });
     expect(withSort(withSort(f, "name"), "name")).toMatchObject({ dir: "asc" });
-    expect(withSort({ ...f, dir: "desc" }, "type")).toMatchObject({ sort: "type", dir: "asc" });
+    expect(withSort({ ...f, dir: "desc" }, "risk")).toMatchObject({ sort: "risk", dir: "asc" });
   });
 
   it("writes only non-default values to the URL and keeps the filters", () => {
     expect(filtersQuery(parseFilters({}))).toBe("");
-    expect(filtersQuery(parseFilters({ q: "sol", pendientes: "1", orden: "tipo", dir: "desc" }))).toBe(
-      "?q=sol&pendientes=1&orden=tipo&dir=desc",
+    expect(filtersQuery(parseFilters({ q: "sol", pendientes: "1", orden: "riesgo", dir: "desc", pagina: "2" }))).toBe(
+      "?q=sol&pendientes=1&orden=riesgo&dir=desc&pagina=2",
     );
   });
 
@@ -95,26 +132,32 @@ describe("supplier sorting", () => {
       "Frutas Monte Claro",
       "Molinos Brisa Azul",
     ]);
-    expect(names(sortSuppliers(rows, "type", "asc"))).toEqual([
+    expect(names(sortSuppliers(rows, "requirements", "asc"))[0]).toBe("Frutas Monte Claro");
+    // Not assessed sorts after every rating.
+    expect(names(sortSuppliers(rows, "risk", "asc"))).toEqual([
       "Molinos Brisa Azul",
       "Frutas Monte Claro",
       "Distribuidora Cañaveral",
     ]);
-    expect(names(sortSuppliers(rows, "approval", "desc"))[0]).toBe("Frutas Monte Claro");
-    expect(names(sortSuppliers(rows, "compliance", "asc"))).toEqual([
-      "Frutas Monte Claro",
-      "Distribuidora Cañaveral",
-      "Molinos Brisa Azul",
-    ]);
-    const more = [...rows, row("Aceites Sol", { activeSources: 5 })];
-    expect(names(sortSuppliers(more, "sources", "desc"))[0]).toBe("Aceites Sol");
+    expect(names(sortSuppliers(rows, "issues", "desc"))[0]).toBe("Frutas Monte Claro");
+    expect(names(sortSuppliers(rows, "approval", "asc"))[2]).toBe("Frutas Monte Claro");
     // Ties stay A→Z even when descending.
-    expect(names(sortSuppliers(rows, "sources", "desc"))).toEqual(names(sortSuppliers(rows, "name", "asc")));
+    expect(names(sortSuppliers(rows, "materials", "desc"))).toEqual(names(sortSuppliers(rows, "name", "asc")));
   });
 
   it("does not change the list it was given", () => {
     const copy = [...rows];
     sortSuppliers(rows, "name", "desc");
     expect(rows).toEqual(copy);
+  });
+});
+
+describe("paging", () => {
+  it("cuts pages and keeps a page past the end on the last page", () => {
+    const many = Array.from({ length: PAGE_SIZE + 3 }, (_, i) => i);
+    expect(paginate(many, 1)).toMatchObject({ page: 1, pages: 2 });
+    expect(paginate(many, 2).rows).toEqual([PAGE_SIZE, PAGE_SIZE + 1, PAGE_SIZE + 2]);
+    expect(paginate(many, 9).page).toBe(2);
+    expect(paginate([], 1)).toEqual({ rows: [], page: 1, pages: 1 });
   });
 });

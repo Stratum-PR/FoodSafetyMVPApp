@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_CATALOG } from "@/domain/catalog";
+import { summarizeSuppliers } from "@/domain/supplier-summary";
+
 import { generateSampleSuppliers, SAMPLE_USERS } from "./sample/suppliers";
 import { buildSupplierDetail } from "./supplier-detail";
 
@@ -12,23 +15,44 @@ describe("supplier detail", () => {
     expect(detail("p-nope")).toBeNull();
   });
 
-  it("splits requirements into the supplier's own and each material's", () => {
+  it("shows exactly the counts the supplier list shows", () => {
+    const { summaries } = summarizeSuppliers(data, { catalog: DEFAULT_CATALOG, today: TODAY });
+    for (const p of data.parties) {
+      const d = detail(p.id)!;
+      expect(d.summary).toEqual(summaries.get(p.id));
+      // The page lists every obligation it counts.
+      expect(d.obligations).toHaveLength(
+        d.summary.requirements.applicable +
+          d.summary.requirements.counts.waived +
+          d.summary.requirements.counts.not_applicable,
+      );
+    }
+  });
+
+  it("splits obligations into the supplier's own, its sites' and each material's", () => {
     const maker = data.parties.find(
-      (p) => p.type === "manufacturer" && data.sources.some((s) => s.manufacturerId === p.id && s.status === "active"),
+      (p) =>
+        p.type === "manufacturer" && data.sources.some((s) => s.manufacturerId === p.id && s.commercial === "active"),
     )!;
     const d = detail(maker.id)!;
-    expect(d.partyRequirements.length).toBeGreaterThan(0);
-    expect(d.partyRequirements.every((r) => r.requirement.subject.kind === "party")).toBe(true);
-    const active = d.sources.filter((s) => s.status === "active");
+    const siteObligations = d.sites.flatMap((s) => s.obligations);
+    expect(siteObligations.length).toBeGreaterThan(0);
+    expect(siteObligations.every((o) => o.requirement.subject.kind === "site")).toBe(true);
+    const active = d.sources.filter((s) => s.commercial === "active");
     expect(active.length).toBeGreaterThan(0);
     for (const s of active) {
       expect(s.role).toBe("manufacturer");
       expect(s.requirements.length).toBe(2);
+      expect(s.site?.partyId).toBe(maker.id);
     }
-    for (const s of d.sources.filter((x) => x.status !== "active")) expect(s.requirements).toEqual([]);
-    // The page's compliance is the sum of what it shows.
-    const shown = d.partyRequirements.length + d.sources.reduce((n, s) => n + s.requirements.length, 0);
-    expect(d.compliance.total).toBe(shown);
+    for (const s of d.sources.filter((x) => x.commercial !== "active")) expect(s.requirements).toEqual([]);
+  });
+
+  it("keeps the legacy site and a second plant apart, each with its own certification", () => {
+    const multi = data.parties.find((p) => data.sites.filter((s) => s.partyId === p.id).length > 1)!;
+    const d = detail(multi.id)!;
+    expect(d.sites.map((s) => s.legacy)).toEqual([true, false]);
+    expect(d.sites[0].certification.siteId).not.toBe(d.sites[1].certification.siteId);
   });
 
   it("shows a distributor what it sells and who makes it", () => {
@@ -43,8 +67,8 @@ describe("supplier detail", () => {
     }
   });
 
-  it("lists every document for the supplier and its materials, newest first, with names", () => {
-    const withDocs = data.parties.find((p) => detail(p.id)!.documents.some((doc) => doc.materialName))!;
+  it("lists every document for the supplier, its sites and its materials, newest first, with names", () => {
+    const withDocs = data.parties.find((p) => detail(p.id)!.documents.some((doc) => doc.siteName !== null))!;
     const docs = detail(withDocs.id)!.documents;
     const dates = docs.map((doc) => doc.receivedOn);
     expect(dates).toEqual([...dates].sort().reverse());

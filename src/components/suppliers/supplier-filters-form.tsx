@@ -9,7 +9,14 @@ import type { ChangeEvent } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { APPROVAL_FILTERS, SORT_KEYS, type SupplierFilters, sortParam, TYPE_FILTERS } from "@/server/supplier-filters";
+import {
+  APPROVAL_FILTERS,
+  RISK_FILTERS,
+  SORT_KEYS,
+  type SupplierFilters,
+  sortParam,
+  TYPE_FILTERS,
+} from "@/server/supplier-filters";
 
 const SELECT =
   "h-8 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
@@ -29,13 +36,14 @@ export function SupplierFiltersForm({
 }) {
   const t = useTranslations("suppliers");
   const tType = useTranslations("partyType");
-  const tApproval = useTranslations("approval");
+  const tApproval = useTranslations("approvalState");
+  const tRisk = useTranslations("risk");
   const submit = (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => e.currentTarget.form?.requestSubmit();
 
   return (
     <Form
       action={action}
-      className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-[1fr_auto_auto] sm:items-end"
+      className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 sm:items-end lg:grid-cols-[1fr_auto_auto_auto]"
     >
       <div className="grid gap-1.5">
         <Label htmlFor="f-q">{t("search")}</Label>
@@ -74,9 +82,19 @@ export function SupplierFiltersForm({
           ))}
         </select>
       </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="f-risk">{t("riskFilter")}</Label>
+        <select id="f-risk" name="riesgo" defaultValue={filters.risk} onChange={submit} className={SELECT}>
+          {RISK_FILTERS.map((v) => (
+            <option key={v} value={v}>
+              {v === "all" ? t("allRisks") : tRisk(v)}
+            </option>
+          ))}
+        </select>
+      </div>
       {/* Phones have no column headers to click. On computers this stays hidden but is still
           submitted, so changing a filter keeps the current sort. */}
-      <div className="grid grid-cols-[1fr_auto] gap-3 sm:col-span-3 md:hidden">
+      <div className="grid grid-cols-[1fr_auto] gap-3 sm:col-span-2 md:hidden lg:col-span-4">
         <div className="grid gap-1.5">
           <Label htmlFor="f-sort">{t("sortBy")}</Label>
           <select id="f-sort" name="orden" defaultValue={sortParam(filters.sort)} onChange={submit} className={SELECT}>
@@ -95,7 +113,7 @@ export function SupplierFiltersForm({
           </select>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-2 lg:col-span-4">
         <label className="inline-flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -106,6 +124,17 @@ export function SupplierFiltersForm({
             className="size-4 accent-primary"
           />
           {t("attention")}
+        </label>
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="vence"
+            value="1"
+            defaultChecked={filters.expiring}
+            onChange={submit}
+            className="size-4 accent-primary"
+          />
+          {t("expiringFilter")}
         </label>
         <div className="ml-auto flex gap-2">
           {filtered ? (

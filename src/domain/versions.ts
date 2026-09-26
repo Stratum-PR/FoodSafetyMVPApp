@@ -1,4 +1,4 @@
-import type { DocumentSubject, SupplierDocument } from "./suppliers";
+import { sameSubject, type SupplierDocument } from "./suppliers";
 
 /*
  * Document history. Nothing is ever deleted: accepting a new version marks the previous
@@ -7,21 +7,22 @@ import type { DocumentSubject, SupplierDocument } from "./suppliers";
  * the same lot). The active version is the accepted one.
  */
 
-function sameSubject(a: DocumentSubject, b: DocumentSubject): boolean {
-  if (a.kind === "party" && b.kind === "party") return a.partyId === b.partyId;
-  if (a.kind === "source" && b.kind === "source") return a.sourceId === b.sourceId;
-  return false;
+/**
+ * Whether two documents are versions of the same logical record: same type, same supplier, site
+ * or material, same lot. A new version replaces only its own record, never another supplier's,
+ * material's or lot's document of the same type.
+ */
+export function sameRecord(
+  a: Pick<SupplierDocument, "typeCode" | "subject" | "lotCode">,
+  b: Pick<SupplierDocument, "typeCode" | "subject" | "lotCode">,
+): boolean {
+  return a.typeCode === b.typeCode && sameSubject(a.subject, b.subject) && (a.lotCode ?? null) === (b.lotCode ?? null);
 }
 
 /** Every version of `doc` (including itself), newest first by issue date, then receipt. */
 export function documentVersions(doc: SupplierDocument, documents: SupplierDocument[]): SupplierDocument[] {
   return documents
-    .filter(
-      (d) =>
-        d.typeCode === doc.typeCode &&
-        sameSubject(d.subject, doc.subject) &&
-        (doc.lotCode === undefined ? d.lotCode === undefined : d.lotCode === doc.lotCode),
-    )
+    .filter((d) => sameRecord(d, doc))
     .sort(
       (a, b) =>
         (b.issuedOn ?? b.receivedOn).localeCompare(a.issuedOn ?? a.receivedOn) ||

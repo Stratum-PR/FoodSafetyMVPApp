@@ -2,7 +2,13 @@ import type { DocumentType } from "./catalog";
 import type { IsoDate } from "./dates";
 import { allRequirements, type SupplierData } from "./requirements";
 import { evaluateRequirement, type RequirementResult, type RequirementStatus } from "./status";
-import type { SupplierDocument } from "./suppliers";
+import { involves, type SupplierDocument } from "./suppliers";
+
+/*
+ * Document-only view of the requirements (current / expiring / expired / missing). Screens use
+ * obligations.ts, which adds review, rejection and waivers on top of this; this stays for the
+ * few places that only care about accepted documents.
+ */
 
 export type ComplianceSummary = {
   total: number;
@@ -21,7 +27,7 @@ export function summarize(results: RequirementResult[]): ComplianceSummary {
   return { total, counts, percent };
 }
 
-/** Evaluates every requirement of the active approved sources. */
+/** Evaluates every requirement of the active sources. */
 export function evaluateCompliance(
   data: SupplierData,
   documents: SupplierDocument[],
@@ -31,18 +37,18 @@ export function evaluateCompliance(
   return allRequirements(data).map((r) => evaluateRequirement(r, documents, catalog, today));
 }
 
-/** Results that concern one party: its own documents plus those of the sources it makes or sells. */
+/** Results that concern one party: its own, its sites', and those of the sources it makes or sells. */
 export function resultsForParty(
   partyId: string,
   results: RequirementResult[],
-  sources: SupplierData["sources"],
+  data: Pick<SupplierData, "sites" | "sources">,
 ): RequirementResult[] {
-  const sourceIds = new Set(
-    sources.filter((s) => s.manufacturerId === partyId || s.distributorId === partyId).map((s) => s.id),
-  );
-  return results.filter((r) =>
-    r.requirement.subject.kind === "party"
-      ? r.requirement.subject.partyId === partyId
-      : sourceIds.has(r.requirement.subject.sourceId),
-  );
+  const siteIds = new Set(data.sites.filter((s) => s.partyId === partyId).map((s) => s.id));
+  const sourceIds = new Set(data.sources.filter((s) => involves(s, partyId)).map((s) => s.id));
+  return results.filter((r) => {
+    const subject = r.requirement.subject;
+    if (subject.kind === "party") return subject.partyId === partyId;
+    if (subject.kind === "site") return siteIds.has(subject.siteId);
+    return sourceIds.has(subject.sourceId);
+  });
 }

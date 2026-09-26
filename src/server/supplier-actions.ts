@@ -4,16 +4,18 @@ import { revalidatePath } from "next/cache";
 
 import type { ApprovalError, ApprovalField } from "@/domain/approval";
 import { isAppError } from "@/domain/errors";
-import type { NonconformityError, NonconformityField } from "@/domain/nonconformity";
+import type { CloseError, NonconformityError, NonconformityField } from "@/domain/nonconformity";
 import type { Denial } from "@/domain/permissions";
 
-import { changeSupplierStatus, recordNonconformity } from "./approvals";
+import { changeSupplierStatus, closeNonconformity, recordNonconformity } from "./approvals";
 import { getRequestContext } from "./context";
 
 const text = (form: FormData, name: string) => {
   const value = form.get(name);
   return typeof value === "string" ? value : "";
 };
+const list = (form: FormData, name: string) =>
+  form.getAll(name).filter((v): v is string => typeof v === "string" && v !== "");
 
 export type StatusFormState =
   | { status: "idle" }
@@ -33,8 +35,13 @@ export async function changeStatusAction(
     const outcome = await changeSupplierStatus(ctx, partyId, {
       action: text(form, "action"),
       reason: text(form, "reason"),
-      conditions: text(form, "conditions"),
+      basis: list(form, "basis"),
       reviewBy: text(form, "reviewBy"),
+      conditions: text(form, "conditions"),
+      owner: text(form, "owner"),
+      effectiveOn: text(form, "effectiveOn"),
+      allowedSourceIds: list(form, "allowedSourceIds"),
+      restrictions: list(form, "restrictions"),
     });
     if (!outcome.ok) {
       return "denial" in outcome
@@ -73,6 +80,34 @@ export async function recordNonconformityAction(
       lotCode: text(form, "lotCode"),
     });
     if (!outcome.ok) return { status: "invalid", errors: outcome.errors };
+  } catch (error) {
+    if (isAppError(error)) {
+      return { status: "denied", denial: error.code === "forbidden" ? "no_permission" : "not_found" };
+    }
+    throw error;
+  }
+  revalidatePath(`/${company}`, "layout");
+  return { status: "done" };
+}
+
+export type CloseFormState =
+  | { status: "idle" }
+  | { status: "done" }
+  | { status: "invalid"; error: CloseError }
+  | { status: "denied"; denial: "no_permission" | "not_found" };
+
+/** Closes a nonconformity with a note (company, supplier and nonconformity bound on the page). */
+export async function closeNonconformityAction(
+  company: string,
+  partyId: string,
+  nonconformityId: string,
+  _previous: CloseFormState,
+  form: FormData,
+): Promise<CloseFormState> {
+  try {
+    const ctx = await getRequestContext(company);
+    const outcome = await closeNonconformity(ctx, partyId, nonconformityId, text(form, "note"));
+    if (!outcome.ok) return { status: "invalid", error: outcome.error };
   } catch (error) {
     if (isAppError(error)) {
       return { status: "denied", denial: error.code === "forbidden" ? "no_permission" : "not_found" };
