@@ -3,7 +3,9 @@ import { type IsoDate, isIsoDate } from "./dates";
 /*
  * A supplier nonconformity: something wrong with what a supplier delivered or did (a rejected
  * lot, a missing COA at receiving, a temperature excursion, a failed audit finding). It feeds
- * supplier performance and the three-in-twelve-months warning. Full CAPA comes after the MVP.
+ * supplier performance and the three-in-twelve-months warning. It stays open until someone
+ * closes it with a note. Full findings and CAPA (root cause, actions, verified closure) come
+ * after the pilot and will start from these records.
  */
 
 export const SEVERITIES = ["minor", "major", "critical"] as const;
@@ -19,7 +21,30 @@ export type Nonconformity = {
   lotCode?: string;
   recordedBy: string;
   recordedOn: IsoDate;
+  /** Open until closed. Older records without a status count as open. */
+  status?: "open" | "closed";
+  closedBy?: string;
+  closedOn?: IsoDate;
+  /** What was done about it. */
+  closeNote?: string;
 };
+
+export function isOpen(nc: Pick<Nonconformity, "status">): boolean {
+  return nc.status !== "closed";
+}
+
+export const CLOSE_NOTE_MIN = 5;
+
+export type CloseError = "already_closed" | "required" | "too_short" | "too_long";
+
+export function checkClose(nc: Pick<Nonconformity, "status">, note: string): CloseError | null {
+  if (!isOpen(nc)) return "already_closed";
+  const text = note.trim();
+  if (!text) return "required";
+  if (text.length < CLOSE_NOTE_MIN) return "too_short";
+  if (text.length > DESCRIPTION_MAX) return "too_long";
+  return null;
+}
 
 export type NonconformityInput = { date: string; severity: string; description: string; lotCode: string };
 export type NonconformityField = "date" | "severity" | "description" | "lotCode";

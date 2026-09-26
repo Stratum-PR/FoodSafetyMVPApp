@@ -7,7 +7,12 @@ export type ActivityAction =
   | "document.accepted"
   | "document.rejected"
   | "supplier.status_changed"
-  | "supplier.nonconformity_recorded";
+  | "supplier.nonconformity_recorded"
+  | "supplier.nonconformity_closed"
+  | "supplier.risk_assessed"
+  | "supplier.fsma204_assessed"
+  | "source.qualification_changed"
+  | "obligation.overridden";
 
 export type ActivityEvent = {
   id: string;

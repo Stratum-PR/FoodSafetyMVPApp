@@ -11,7 +11,7 @@ const EXE = new Uint8Array([0x4d, 0x5a, 0x90, 0x00]);
 
 function input(extra: Partial<UploadInput> = {}): UploadInput {
   return {
-    subject: { kind: "party", partyId: "p1" },
+    subject: { kind: "site", siteId: "plant-1" },
     materialKind: null,
     typeCode: "gfsi_cert",
     lotCode: "",
@@ -47,6 +47,13 @@ describe("upload checks", () => {
   it("only allows types that fit the supplier or the material", () => {
     expect(check({ typeCode: "spec_sheet" })).toMatchObject({ errors: { typeCode: "type_not_for_subject" } });
     expect(check({ typeCode: "made_up" })).toMatchObject({ errors: { typeCode: "unknown_type" } });
+    // Certificates belong to a facility, never to the company as a whole.
+    expect(check({ subject: { kind: "party", partyId: "p1" } })).toMatchObject({
+      errors: { typeCode: "type_not_for_subject" },
+    });
+    expect(check({ subject: { kind: "party", partyId: "p1" }, typeCode: "guarantee_letter" })).toMatchObject({
+      ok: true,
+    });
     const material = { subject: { kind: "source", sourceId: "s1" } as const, typeCode: "allergen_statement" };
     expect(check({ ...material, materialKind: "ingredient" }).ok).toBe(true);
     // Packaging has no allergen statement; it has the food-contact letter.

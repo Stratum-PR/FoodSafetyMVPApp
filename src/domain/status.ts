@@ -1,7 +1,7 @@
 import { type DocumentType, findType } from "./catalog";
 import { addMonths, daysBetween, type IsoDate } from "./dates";
 import type { Requirement } from "./requirements";
-import type { DocumentSubject, SupplierDocument } from "./suppliers";
+import { sameSubject, type SupplierDocument } from "./suppliers";
 
 /** Days before expiration when a document starts showing as "expiring". */
 export const EXPIRING_WINDOW_DAYS = 30;
@@ -27,12 +27,6 @@ export function documentStatus(expiresOn: IsoDate | null, today: IsoDate): Exclu
   const days = daysBetween(today, expiresOn);
   if (days < 0) return "expired";
   return days <= EXPIRING_WINDOW_DAYS ? "expiring" : "current";
-}
-
-function sameSubject(a: DocumentSubject, b: DocumentSubject): boolean {
-  if (a.kind === "party" && b.kind === "party") return a.partyId === b.partyId;
-  if (a.kind === "source" && b.kind === "source") return a.sourceId === b.sourceId;
-  return false;
 }
 
 export type RequirementResult = {

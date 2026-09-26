@@ -59,6 +59,7 @@ export function typeFitsSubject(
   materialKind: MaterialKind | null,
 ): boolean {
   if (type.level === "party") return subject.kind === "party";
+  if (type.level === "site") return subject.kind === "site";
   if (subject.kind !== "source" || !materialKind) return false;
   return !type.materialKinds || type.materialKinds.includes(materialKind);
 }

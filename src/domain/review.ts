@@ -1,6 +1,6 @@
 import type { IsoDate } from "./dates";
 import { type Actor, checkReviewDocument, DEFAULT_REVIEW_POLICY, type Denial, type ReviewPolicy } from "./permissions";
-import type { SupplierDocument } from "./suppliers";
+import { sameSubject as sameSubjectOf, type SupplierDocument } from "./suppliers";
 
 /*
  * Accepting or rejecting an uploaded document. Rules:
@@ -23,9 +23,7 @@ export type ReviewResult =
   { ok: true; document: SupplierDocument; superseded: SupplierDocument[] } | { ok: false; denial: ReviewDenial };
 
 function sameSubject(a: SupplierDocument, b: SupplierDocument): boolean {
-  if (a.subject.kind === "party" && b.subject.kind === "party") return a.subject.partyId === b.subject.partyId;
-  if (a.subject.kind === "source" && b.subject.kind === "source") return a.subject.sourceId === b.subject.sourceId;
-  return false;
+  return sameSubjectOf(a.subject, b.subject);
 }
 
 /** Whether the actor may decide this document at all (for showing or hiding the buttons). */

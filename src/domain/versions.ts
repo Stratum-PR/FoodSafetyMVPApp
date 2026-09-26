@@ -1,4 +1,4 @@
-import type { DocumentSubject, SupplierDocument } from "./suppliers";
+import { sameSubject, type SupplierDocument } from "./suppliers";
 
 /*
  * Document history. Nothing is ever deleted: accepting a new version marks the previous
@@ -6,12 +6,6 @@ import type { DocumentSubject, SupplierDocument } from "./suppliers";
  * are all documents of the same type for the same supplier or material (per-lot documents:
  * the same lot). The active version is the accepted one.
  */
-
-function sameSubject(a: DocumentSubject, b: DocumentSubject): boolean {
-  if (a.kind === "party" && b.kind === "party") return a.partyId === b.partyId;
-  if (a.kind === "source" && b.kind === "source") return a.sourceId === b.sourceId;
-  return false;
-}
 
 /** Every version of `doc` (including itself), newest first by issue date, then receipt. */
 export function documentVersions(doc: SupplierDocument, documents: SupplierDocument[]): SupplierDocument[] {

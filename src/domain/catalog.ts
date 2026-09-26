@@ -7,8 +7,11 @@ import type { MaterialKind } from "./suppliers";
 
 export type LocalizedText = { es: string; en: string };
 
-/** party: one per supplier (e.g. GFSI certificate). source: one per material + supplier (e.g. spec sheet). */
-export type DocumentLevel = "party" | "source";
+/**
+ * party: one per supplier company (e.g. guarantee letter). site: one per plant or warehouse
+ * (e.g. GFSI certificate, FDA registration). source: one per material + supplier (e.g. spec sheet).
+ */
+export type DocumentLevel = "party" | "site" | "source";
 
 export type DocumentType = {
   code: string;
@@ -28,13 +31,13 @@ export const DEFAULT_CATALOG: DocumentType[] = [
   {
     code: "gfsi_cert",
     name: { es: "Certificado GFSI (SQF, BRCGS, FSSC 22000)", en: "GFSI certificate (SQF, BRCGS, FSSC 22000)" },
-    level: "party",
+    level: "site",
     validityMonths: DEFAULT_VALIDITY_MONTHS,
   },
   {
     code: "audit_report",
     name: { es: "Informe de auditoría en sitio", en: "On-site audit report" },
-    level: "party",
+    level: "site",
     validityMonths: DEFAULT_VALIDITY_MONTHS,
   },
   {
@@ -47,7 +50,7 @@ export const DEFAULT_CATALOG: DocumentType[] = [
     // Food facilities renew their FDA registration every two years (Oct–Dec of even years).
     code: "fda_registration",
     name: { es: "Registro de instalación ante la FDA", en: "FDA food facility registration" },
-    level: "party",
+    level: "site",
     validityMonths: 24,
   },
   {
