@@ -1,4 +1,4 @@
-import { SearchX } from "lucide-react";
+import { ArrowRight, Factory, FileWarning, type LucideIcon, Plus, SearchX, Truck, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -9,7 +9,6 @@ import { PageHeader } from "@/components/page-header";
 import { type Column, ResponsiveTable } from "@/components/responsive-table";
 import { sectionText } from "@/components/section-placeholder";
 import { ApprovalBadge } from "@/components/suppliers/approval-badge";
-import { SupplierFiltersForm } from "@/components/suppliers/supplier-filters-form";
 import {
   CertificationBadge,
   Fsma204Badge,
@@ -18,16 +17,19 @@ import {
   RiskBadge,
 } from "@/components/suppliers/summary-badges";
 import { buttonVariants } from "@/components/ui/button";
+import { SupplierToolbar } from "@/components/suppliers/supplier-toolbar";
+import { can } from "@/domain/permissions";
 import { cn } from "@/lib/utils";
 import { getRequestContext } from "@/server/context";
 import {
   filtersQuery,
   filterSuppliers,
-  hasFilters,
   paginate,
   parseFilters,
   type SortKey,
+  type SupplierFilters,
   sortSuppliers,
+  supplierStats,
   withSort,
 } from "@/server/supplier-filters";
 import { listSuppliers, type SupplierRow } from "@/server/suppliers";
@@ -52,6 +54,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
   const action = navHref(company, "suplidores");
   // Noon UTC is the same calendar day in Puerto Rico.
   const date = (iso: string) => format.dateTime(new Date(`${iso}T12:00:00Z`), { dateStyle: "medium" });
+  const stats = supplierStats(rows);
+  const hrefWith = (change: Partial<SupplierFilters>) => `${action}${filtersQuery({ ...filters, page: 1, ...change })}`;
 
   // Sortable columns; clicking the current one flips the direction. Filters are kept.
   const sort = (key: SortKey) => ({
@@ -180,22 +184,70 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <PageHeader title={text.title} description={text.description} />
-      <SupplierFiltersForm
-        key={JSON.stringify(filters)}
-        action={action}
-        filters={filters}
-        filtered={hasFilters(filters)}
-        clearHref={`${action}${filtersQuery({ ...parseFilters({}), sort: filters.sort, dir: filters.dir })}`}
+      <PageHeader
+        title={text.title}
+        description={text.description}
+        actions={
+          can(ctx.actor.role, "suppliers.edit") ? (
+            <Link href={`${action}/nuevo`} className={buttonVariants()}>
+              <Plus aria-hidden />
+              {t("add")}
+            </Link>
+          ) : null
+        }
       />
-      <div className="grid gap-1">
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          {t("count", { shown: matching.length, total: rows.length })}
-        </p>
-        <p className="text-xs text-muted-foreground">{t("requirementsHint")}</p>
-      </div>
-      {page.rows.length ? (
-        <ResponsiveTable columns={columns} rows={page.rows} rowKey={(r) => r.id} caption={t("caption")} />
+
+      <nav aria-label={t("statsLabel")} className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard
+          icon={Users}
+          label={t("stats.all")}
+          value={stats.total}
+          detail={t("stats.active", { count: stats.active })}
+          href={hrefWith({ type: "all", attention: false })}
+          current={filters.type === "all" && !filters.attention}
+        />
+        <StatCard
+          icon={Factory}
+          label={t("stats.manufacturers")}
+          value={stats.manufacturers.total}
+          detail={t("stats.active", { count: stats.manufacturers.active })}
+          href={hrefWith({ type: "manufacturer", attention: false })}
+          current={filters.type === "manufacturer" && !filters.attention}
+        />
+        <StatCard
+          icon={Truck}
+          label={t("stats.distributors")}
+          value={stats.distributors.total}
+          detail={t("stats.active", { count: stats.distributors.active })}
+          href={hrefWith({ type: "distributor", attention: false })}
+          current={filters.type === "distributor" && !filters.attention}
+        />
+        <StatCard
+          icon={FileWarning}
+          label={t("stats.attention")}
+          value={stats.attention}
+          detail={t("stats.attentionHint")}
+          href={hrefWith({ type: "all", attention: true })}
+          current={filters.attention && filters.type === "all"}
+        />
+      </nav>
+
+      <SupplierToolbar action={action} filters={filters} />
+
+      <p className="text-xs text-muted-foreground">{t("requirementsHint")}</p>
+      <p className="-mb-3 text-sm text-muted-foreground" aria-live="polite">
+        {t("count", { shown: matching.length, total: rows.length })}
+      </p>
+      {matching.length ? (
+        <div className="grid min-w-0 gap-3">
+          <ResponsiveTable
+            columns={columns}
+            rows={page.rows}
+            rowKey={(r) => r.id}
+            rowHref={(r) => supplierHref(company, r.id)}
+            caption={t("caption")}
+          />
+        </div>
       ) : (
         <EmptyState icon={SearchX} title={t("emptyTitle")} body={t("emptyBody")} />
       )}
@@ -229,5 +281,42 @@ export default async function Page({ params, searchParams }: PageProps<"/[compan
         </nav>
       ) : null}
     </div>
+  );
+}
+
+/** A count that also filters the list. The one matching the current filter is marked. */
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  href,
+  current,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+  detail: string;
+  href: string;
+  current: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={current ? "true" : undefined}
+      className={cn(
+        "group rounded-xl border bg-card p-4 transition-colors hover:border-primary focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+        current && "border-primary bg-primary/5 ring-1 ring-primary",
+      )}
+    >
+      <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-primary">
+        <Icon aria-hidden className="size-4" />
+        {label}
+        <ArrowRight aria-hidden className="ml-auto size-4 opacity-0 transition-opacity group-hover:opacity-100" />
+      </p>
+      <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+    </Link>
   );
 }

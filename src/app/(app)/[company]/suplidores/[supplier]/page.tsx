@@ -94,6 +94,12 @@ export default async function Page({ params, searchParams }: Props) {
         </div>
       </div>
 
+      {query.nuevo === "1" ? (
+        <p role="status" className="rounded-lg bg-status-current-bg px-4 py-3 text-sm font-medium text-status-current">
+          {t("created")}
+        </p>
+      ) : null}
+
       <dl
         aria-label={t("header.label")}
         className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-6"

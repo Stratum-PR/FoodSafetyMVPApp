@@ -3,13 +3,20 @@
 import * as React from "react";
 import { cn } from "cn";
 
+// Scroll containers need a tab stop so keyboard users can reach columns outside the viewport.
+/* eslint-disable jsx-a11y/no-noninteractive-tabindex */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      tabIndex={0}
+      className="relative w-full overflow-x-auto focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+    >
       <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
 }
+/* eslint-enable jsx-a11y/no-noninteractive-tabindex */
 
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return <thead data-slot="table-header" className={cn("[&_tr]:border-b", className)} {...props} />;

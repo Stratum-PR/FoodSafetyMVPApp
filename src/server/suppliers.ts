@@ -1,10 +1,32 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import { DEFAULT_CATALOG } from "@/domain/catalog";
 import { summarizeObligations, type RequirementSummary } from "@/domain/obligations";
 import { summarizeSuppliers, type SupplierSummary } from "@/domain/supplier-summary";
-import type { PartyType } from "@/domain/suppliers";
-import { isForeign } from "@/domain/suppliers";
+import type { PartyType, Lifecycle } from "@/domain/suppliers";
+import { isForeign, legacySite } from "@/domain/suppliers";
+import {
+  conditionsDue,
+  expiryOutlook,
+  type ExpiryOutlook,
+  fdaRenewalPeriod,
+  fdaRenewalsDue,
+  fsvpGaps,
+  highRiskGaps,
+  isActiveSupplier,
+  nonconformityOutlook,
+  reviewQueue,
+  suspendedWithActiveSources,
+} from "@/domain/operations";
+import {
+  checkNewSupplier,
+  type NewSupplierError,
+  type NewSupplierField,
+  type NewSupplierInput,
+} from "@/domain/new-supplier";
+import type { Severity } from "@/domain/nonconformity";
 
 import { type RequestContext, requirePermission } from "./context";
 import { getSampleStore, type SampleStore } from "./sample/store";
@@ -32,6 +54,7 @@ export type SupplierRow = {
   city: string;
   country: string;
   foreign: boolean;
+  lifecycle: Lifecycle;
   summary: SupplierSummary;
 };
 
@@ -47,6 +70,7 @@ export async function listSuppliers(ctx: RequestContext): Promise<SupplierRow[]>
     city: p.city,
     country: p.country,
     foreign: isForeign(p),
+    lifecycle: p.lifecycle,
     summary: summaries.get(p.id)!,
   }));
 }
@@ -59,13 +83,28 @@ export type Attention = {
   expiresOn: string;
 };
 
+/** A supplier named on a panel card, with a short detail (a date, a count…). */
+export type NamedParty = { partyId: string; partyName: string };
+
+export type PanelOperations = {
+  expiry: ExpiryOutlook;
+  reviewQueue: { count: number; oldestDays: number | null };
+  conditionsDue: (NamedParty & { reviewBy: string; overdue: boolean })[];
+  nonconformities: { bySeverity: Record<Severity, number>; repeat: (NamedParty & { count: number })[] };
+  suspendedActive: (NamedParty & { activeSources: number })[];
+  highRisk: (NamedParty & { sourceId: string; materialName: string; gaps: number })[];
+  fsvp: NamedParty[];
+  fdaRenewal: { opensOn: string; closesOn: string; open: boolean; due: NamedParty[] };
+};
+
 export type PanelSummary = {
   /** Every supplier obligation in the company, counted like the supplier list. */
   requirements: RequirementSummary;
-  suppliers: { total: number; pendingApproval: number; conditional: number };
+  suppliers: { total: number; active: number; pendingApproval: number; conditional: number };
   documentsToReview: number;
   /** Expired and soon-to-expire documents, most urgent first. */
   attention: Attention[];
+  operations: PanelOperations;
 };
 
 export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary> {
@@ -96,15 +135,42 @@ export async function getPanelSummary(ctx: RequestContext): Promise<PanelSummary
     })
     .sort((a, b) => a.expiresOn.localeCompare(b.expiresOn));
 
+  const named = <T extends { partyId: string }>(list: T[]): (T & NamedParty)[] =>
+    list.map((x) => ({ ...x, partyName: names.get(x.partyId) ?? "" }));
+  const materialNames = new Map(data.materials.map((m) => [m.id, m.name]));
+  const ncs = nonconformityOutlook(data.nonconformities ?? [], ctx.today);
+  const fda = fdaRenewalPeriod(ctx.today);
+  const queue = reviewQueue(data.documents, ctx.today);
+
   return {
     requirements: summarizeObligations(obligations),
     suppliers: {
       total: data.parties.filter((p) => p.lifecycle !== "inactive").length,
       pendingApproval: data.parties.filter((p) => p.approval === "pending" && p.lifecycle !== "inactive").length,
+      active: data.parties.filter(isActiveSupplier).length,
       conditional: data.parties.filter((p) => p.approval === "conditional").length,
     },
-    documentsToReview: data.documents.filter((d) => d.state === "pending_review").length,
+    documentsToReview: queue.count,
     attention,
+    operations: {
+      expiry: expiryOutlook(obligations, ctx.today),
+      reviewQueue: queue,
+      conditionsDue: named(conditionsDue(data.parties, ctx.today)),
+      nonconformities: { bySeverity: ncs.bySeverity, repeat: named(ncs.repeat) },
+      suspendedActive: named(suspendedWithActiveSources(data.parties, data.sources)),
+      highRisk: highRiskGaps(data.sources, obligations).map((x) => ({
+        partyId: x.manufacturerId,
+        partyName: names.get(x.manufacturerId) ?? "",
+        sourceId: x.sourceId,
+        materialName: materialNames.get(x.materialId) ?? "",
+        gaps: x.gaps,
+      })),
+      fsvp: named(fsvpGaps(obligations).map((partyId) => ({ partyId }))),
+      fdaRenewal: {
+        ...fda,
+        due: named(fdaRenewalsDue(obligations, fda.opensOn, data.sites).map((partyId) => ({ partyId }))),
+      },
+    },
   };
 }
 
@@ -113,4 +179,37 @@ export async function getSupplier(ctx: RequestContext, partyId: string): Promise
   requirePermission(ctx, "suppliers.view");
   const data = loadData(ctx);
   return buildSupplierDetail(data, partyId, ctx.today, SAMPLE_USERS, data.requirementPolicy);
+}
+
+export type CreateSupplierOutcome =
+  { ok: true; id: string } | { ok: false; errors: Partial<Record<NewSupplierField, NewSupplierError>> };
+
+/** Adds a supplier in onboarding, pending approval, and records who added it. */
+export async function createSupplier(ctx: RequestContext, input: NewSupplierInput): Promise<CreateSupplierOutcome> {
+  requirePermission(ctx, "suppliers.edit");
+  const store = getSampleStore(ctx.company.slug, ctx.today);
+  const check = checkNewSupplier(
+    input,
+    store.parties.map((p) => p.name),
+  );
+  if (!check.ok) return check;
+
+  const id = `p-${randomUUID()}`;
+  store.parties.push({
+    id,
+    ...check.value,
+    direction: "request",
+    lifecycle: "onboarding",
+    approval: "pending",
+    createdBy: ctx.actor.userId,
+  });
+  store.sites.push(legacySite({ id, ...check.value }));
+  store.events.push({
+    id: randomUUID(),
+    at: new Date().toISOString(),
+    actorId: ctx.actor.userId,
+    action: "supplier.created",
+    partyId: id,
+  });
+  return { ok: true, id };
 }

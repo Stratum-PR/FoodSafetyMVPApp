@@ -11,6 +11,7 @@ import {
   paginate,
   parseFilters,
   sortSuppliers,
+  supplierStats,
   withSort,
 } from "./supplier-filters";
 import type { SupplierRow } from "./suppliers";
@@ -41,6 +42,7 @@ function row(id: string, extra: Extra = {}): SupplierRow {
     city: "Caguas",
     country: "PR",
     foreign: false,
+    lifecycle: "monitoring",
     ...extra,
     summary: summary(extra.summary),
   };
@@ -71,6 +73,7 @@ describe("supplier filters", () => {
       type: "all",
       approval: "all",
       risk: "all",
+      stage: "all",
       attention: false,
       expiring: false,
       sort: "requirements",
@@ -102,6 +105,25 @@ describe("supplier filters", () => {
     expect(names(filterSuppliers(rows, parseFilters({ riesgo: "not_assessed" })))).toEqual(["Distribuidora Cañaveral"]);
     expect(names(filterSuppliers(rows, parseFilters({ riesgo: "high" })))).toEqual(["Frutas Monte Claro"]);
     expect(names(filterSuppliers(rows, parseFilters({ pendientes: "1" })))).toEqual(["Frutas Monte Claro"]);
+  });
+
+  it("filters active suppliers (approved or conditional, not deactivated) and by stage", () => {
+    const more = [
+      ...rows,
+      row("Empaques Vega", { summary: { state: "conditional" } }),
+      row("Harinas Loma", { lifecycle: "inactive" }),
+      row("Sales Punta", { summary: { state: "suspended" }, lifecycle: "suspended" }),
+    ];
+    expect(names(filterSuppliers(more, parseFilters({ estado: "active" })))).toEqual([
+      "Molinos Brisa Azul",
+      "Distribuidora Cañaveral",
+      "Empaques Vega",
+    ]);
+    expect(names(filterSuppliers(more, parseFilters({ estado: "inactive" })))).toEqual(["Harinas Loma"]);
+    expect(names(filterSuppliers(more, parseFilters({ estado: "suspended" })))).toEqual(["Sales Punta"]);
+    expect(parseFilters({ estado: "nope" }).stage).toBe("all");
+    expect(filtersQuery(parseFilters({ estado: "active" }))).toBe("?estado=active");
+    expect(hasFilters(parseFilters({ estado: "active" }))).toBe(true);
   });
 });
 
@@ -159,5 +181,35 @@ describe("paging", () => {
     expect(paginate(many, 2).rows).toEqual([PAGE_SIZE, PAGE_SIZE + 1, PAGE_SIZE + 2]);
     expect(paginate(many, 9).page).toBe(2);
     expect(paginate([], 1)).toEqual({ rows: [], page: 1, pages: 1 });
+  });
+});
+describe("supplier pages", () => {
+  it("reads the page from the URL and goes back to page 1 when the sort changes", () => {
+    expect(parseFilters({ pagina: "3" }).page).toBe(3);
+    expect(parseFilters({ pagina: "-2" }).page).toBe(1);
+    expect(parseFilters({ pagina: "abc" }).page).toBe(1);
+    expect(filtersQuery(parseFilters({ pagina: "2" }))).toBe("?pagina=2");
+    expect(withSort(parseFilters({ pagina: "3" }), "name").page).toBe(1);
+  });
+
+  it("cuts the list in pages and keeps a page past the end on the last one", () => {
+    const list = Array.from({ length: PAGE_SIZE * 2 + 3 }, (_, i) => i);
+    expect(paginate(list, 1)).toMatchObject({ page: 1, pages: 3 });
+    expect(paginate(list, 3).rows).toEqual(list.slice(PAGE_SIZE * 2));
+    expect(paginate(list, 99).page).toBe(3);
+    expect(paginate([], 1)).toEqual({ rows: [], page: 1, pages: 1 });
+  });
+});
+
+describe("supplier stats", () => {
+  it("counts manufacturers and distributors, a party that is both in each", () => {
+    const more = [...rows, row("Harinas Loma", { lifecycle: "inactive" })];
+    expect(supplierStats(more)).toEqual({
+      total: 4,
+      active: 2,
+      manufacturers: { total: 3, active: 1 },
+      distributors: { total: 2, active: 1 },
+      attention: 1,
+    });
   });
 });

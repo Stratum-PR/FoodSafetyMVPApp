@@ -1,5 +1,6 @@
 import { APPROVAL_STATES, type ApprovalState } from "@/domain/approval";
 import type { Risk } from "@/domain/suppliers";
+import { isActiveSupplier } from "@/domain/operations";
 
 import type { SupplierRow } from "./suppliers";
 
@@ -9,15 +10,25 @@ import type { SupplierRow } from "./suppliers";
  * list can be bookmarked or shared, and the page works without JavaScript.
  */
 
-export const TYPE_FILTERS = ["all", "manufacturer", "distributor"] as const;
 export const APPROVAL_FILTERS = ["all", ...APPROVAL_STATES] as const;
 export const RISK_FILTERS = ["all", "not_assessed", "high", "medium", "low"] as const;
+
+export const TYPE_FILTERS = ["all", "manufacturer", "distributor"] as const;
+
+/** active: approved or conditional and not deactivated (the panel's count). The rest are stages. */
+export const STAGE_FILTERS = [
+  "all",
+  "active",
+  "onboarding",
+  "verification",
+  "monitoring",
+  "suspended",
+  "inactive",
+] as const;
 
 export const SORT_KEYS = ["name", "approval", "risk", "materials", "requirements", "issues"] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
 export type SortDir = "asc" | "desc";
-
-export const PAGE_SIZE = 25;
 
 /** URL values are Spanish, like the rest of the URL. */
 const SORT_PARAM: Record<SortKey, string> = {
@@ -37,6 +48,7 @@ export type SupplierFilters = {
   type: (typeof TYPE_FILTERS)[number];
   approval: (typeof APPROVAL_FILTERS)[number];
   risk: (typeof RISK_FILTERS)[number];
+  stage: (typeof STAGE_FILTERS)[number];
   /** Only suppliers with a requirement that isn't met (missing, expired, rejected or awaiting review). */
   attention: boolean;
   /** Only suppliers with something expiring within 30 days. */
@@ -46,6 +58,8 @@ export type SupplierFilters = {
   /** 1-based. */
   page: number;
 };
+
+export const PAGE_SIZE = 15;
 
 type Params = Record<string, string | string[] | undefined>;
 
@@ -66,6 +80,7 @@ export function parseFilters(params: Params): SupplierFilters {
     type: oneOf(TYPE_FILTERS, first(params.tipo)),
     approval: oneOf(APPROVAL_FILTERS, first(params.aprobacion)),
     risk: oneOf(RISK_FILTERS, first(params.riesgo)),
+    stage: oneOf(STAGE_FILTERS, first(params.estado)),
     attention: first(params.pendientes) === "1",
     expiring: first(params.vence) === "1",
     sort: sort ?? DEFAULT_SORT.key,
@@ -85,6 +100,7 @@ export function filtersQuery(f: SupplierFilters): string {
   if (f.type !== "all") p.set("tipo", f.type);
   if (f.approval !== "all") p.set("aprobacion", f.approval);
   if (f.risk !== "all") p.set("riesgo", f.risk);
+  if (f.stage !== "all") p.set("estado", f.stage);
   if (f.attention) p.set("pendientes", "1");
   if (f.expiring) p.set("vence", "1");
   if (f.sort !== DEFAULT_SORT.key || f.dir !== DEFAULT_SORT.dir) {
@@ -102,7 +118,15 @@ export function withSort(f: SupplierFilters, key: SortKey): SupplierFilters {
 }
 
 export function hasFilters(f: SupplierFilters): boolean {
-  return f.q !== "" || f.type !== "all" || f.approval !== "all" || f.risk !== "all" || f.attention || f.expiring;
+  return (
+    f.q !== "" ||
+    f.type !== "all" ||
+    f.approval !== "all" ||
+    f.risk !== "all" ||
+    f.stage !== "all" ||
+    f.attention ||
+    f.expiring
+  );
 }
 
 /** Lowercase without accents, so "cintron" finds "Cintrón". */
@@ -135,6 +159,9 @@ export function filterSuppliers<Row extends SupplierRow>(rows: Row[], f: Supplie
     if (f.type !== "all" && row.type !== f.type && row.type !== "both") return false;
     if (f.approval !== "all" && row.summary.state !== (f.approval satisfies ApprovalState)) return false;
     if (f.risk !== "all" && (row.summary.risk.rating ?? "not_assessed") !== f.risk) return false;
+    if (f.stage === "active" && !isActiveSupplier({ approval: row.summary.state, lifecycle: row.lifecycle }))
+      return false;
+    if (f.stage !== "all" && f.stage !== "active" && row.lifecycle !== f.stage) return false;
     if (f.attention && !needsAttention(row)) return false;
     if (f.expiring && !hasExpiring(row)) return false;
     return true;
@@ -176,4 +203,20 @@ export function paginate<Row>(rows: Row[], page: number): { rows: Row[]; page: n
   const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const current = Math.min(Math.max(1, page), pages);
   return { rows: rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE), page: current, pages };
+}
+
+/** Counts use the same derived approval and requirement state as the list. */
+export function supplierStats(rows: Pick<SupplierRow, "type" | "summary" | "lifecycle">[]) {
+  const active = (r: (typeof rows)[number]) => isActiveSupplier({ approval: r.summary.state, lifecycle: r.lifecycle });
+  const group = (type: "manufacturer" | "distributor") => {
+    const list = rows.filter((r) => r.type === type || r.type === "both");
+    return { total: list.length, active: list.filter(active).length };
+  };
+  return {
+    total: rows.length,
+    active: rows.filter(active).length,
+    manufacturers: group("manufacturer"),
+    distributors: group("distributor"),
+    attention: rows.filter(needsAttention).length,
+  };
 }
