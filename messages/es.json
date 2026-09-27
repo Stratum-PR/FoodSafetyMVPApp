@@ -150,7 +150,10 @@
       "requirements": "Requisitos",
       "fsma204": "FSMA 204",
       "issues": "No conformidades",
-      "nextAction": "Próximo paso"
+      "nextAction": "Próximo paso",
+      "type": "Tipo",
+      "sources": "Materiales activos",
+      "compliance": "Cumplimiento"
     },
     "foreign": "Extranjero · FSVP",
     "inactive": "Inactivo",
@@ -179,7 +182,23 @@
     "pagination": "Páginas de la lista",
     "previous": "Anterior",
     "next": "Siguiente",
-    "pageOf": "Página {page} de {pages}"
+    "pageOf": "Página {page} de {pages}",
+    "stage": "Estado",
+    "allStages": "Todos",
+    "activeStage": "Activos (aprobados o condicionales)",
+    "add": "Agregar suplidor",
+    "statsLabel": "Resumen de suplidores",
+    "stats": {
+      "all": "Suplidores",
+      "manufacturers": "Manufactureros",
+      "distributors": "Distribuidores",
+      "attention": "Con documentos pendientes",
+      "attentionHint": "Faltantes, vencidos, rechazados o por revisar",
+      "active": "{count, plural, one {# activo} other {# activos}}"
+    },
+    "filters": "Filtros",
+    "removeFilter": "Quitar filtro: {name}",
+    "page": "Página {page} de {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturero",
@@ -309,7 +328,44 @@
     "viewPending": "Ver suplidores con pendientes",
     "more": "y {count} más",
     "inDays": "{days, plural, =0 {vence hoy} one {en # día} other {en # días}}",
-    "daysAgo": "{days, plural, one {hace # día} other {hace # días}}"
+    "daysAgo": "{days, plural, one {hace # día} other {hace # días}}",
+    "operations": "Para atender",
+    "operationsHint": "Lo que requiere acción hoy o en las próximas semanas.",
+    "indicators": "Indicadores",
+    "indicatorsHint": "Cómo va el programa de suplidores en general.",
+    "activeHint": "Aprobados o condicionales",
+    "oldestWaiting": "{days, plural, =0 {el más antiguo llegó hoy} one {el más antiguo espera # día} other {el más antiguo espera # días}}",
+    "queueEmpty": "Nada por revisar",
+    "conditionsDue": "Condicionales por revisar",
+    "conditionsDueHint": "{overdue, plural, =0 {vencen en 30 días} one {# con la revisión vencida} other {# con la revisión vencida}}",
+    "gaps": "Vencidos o faltantes",
+    "gapsHint": "{expired} vencidos · {missing} sin evidencia vigente",
+    "outlook": "Próximos 90 días",
+    "outlookLabel": "Documentos por vencer en los próximos 90 días",
+    "bucket30": "0–30 días",
+    "bucket60": "31–60 días",
+    "bucket90": "61–90 días",
+    "bucketExpired": "Vencidos",
+    "fda": "Renovación del registro FDA",
+    "fdaOpen": "El periodo de renovación está abierto hasta el {closes}.",
+    "fdaUpcoming": "El periodo de renovación abre el {opens} y cierra el {closes}.",
+    "fdaDue": "{count, plural, =0 {Todos los manufactureros muestran un registro renovado.} one {# manufacturero debe mostrar su registro renovado:} other {# manufactureros deben mostrar su registro renovado:}}",
+    "fsvp": "FSVP: falta el análisis de peligros",
+    "fsvpHint": "Manufactureros extranjeros sin análisis de peligros vigente.",
+    "fsvpEmpty": "Todos los manufactureros extranjeros tienen su análisis.",
+    "suspended": "Suspendidos con materiales activos",
+    "suspendedHint": "Siguen como fuente de un material activo: todavía se les podría recibir.",
+    "suspendedEmpty": "Ningún suplidor suspendido tiene materiales activos.",
+    "materialCount": "{count, plural, one {# material} other {# materiales}}",
+    "highRisk": "Materiales de alto riesgo con faltas",
+    "highRiskHint": "Documentos vencidos o faltantes del material o de sus suplidores.",
+    "highRiskEmpty": "Los materiales de alto riesgo están al día.",
+    "gapCount": "{count, plural, one {# falta} other {# faltas}}",
+    "nonconformities": "No conformidades (12 meses)",
+    "nonconformitiesHint": "Con 3 o más en 12 meses, el procedimiento pide revisar al suplidor.",
+    "nonconformitiesEmpty": "Ningún suplidor llega a 3 no conformidades.",
+    "ncCount": "{count} en 12 meses",
+    "bySeverity": "Por gravedad"
   },
   "supplier": {
     "back": "Suplidores",
@@ -586,7 +642,10 @@
       "document": "{type}: {state}",
       "by": "Por {name}",
       "auditNote": "Con datos de ejemplo este historial vive en memoria. El registro de auditoría encadenado (cada entrada con el hash de la anterior) llega con la base de datos."
-    }
+    },
+    "created": "Suplidor agregado. Está en incorporación y pendiente de aprobación: sube sus documentos para que alguien con permiso de aprobación lo evalúe.",
+    "complianceNone": "Todavía no tiene requisitos: se calculan a partir de los materiales que se le compran.",
+    "complianceExplain": "Requisitos al día (vigentes o por vencer) de todos los que aplican por su rol, su origen y sus materiales activos. El detalle está abajo."
   },
   "lifecycle": {
     "onboarding": "Incorporación",
@@ -600,7 +659,9 @@
     "tabs": {
       "revisar": "Por revisar",
       "aceptados": "Aceptados",
-      "rechazados": "Rechazados"
+      "rechazados": "Rechazados",
+      "reemplazados": "Reemplazados",
+      "todos": "Todos"
     },
     "search": "Buscar",
     "searchPlaceholder": "Suplidor, instalación, material, tipo, lote o archivo",
@@ -641,10 +702,10 @@
       "todas": "Todas"
     },
     "expiry": {
-      "vencidos": "Ya vencidos",
       "30": "En 30 días",
       "60": "En 60 días",
       "90": "En 90 días",
+      "vencidos": "Ya vencidos",
       "sin-vencimiento": "No vence"
     },
     "sort": {
@@ -662,7 +723,12 @@
       "validThrough": "Válido hasta",
       "priority": "Prioridad",
       "state": "Estado",
-      "action": "Acción"
+      "action": "Acción",
+      "type": "Documento",
+      "supplier": "Suplidor",
+      "about": "Para",
+      "expires": "Vence",
+      "uploadedBy": "Subido por"
     },
     "version": "v{version}",
     "noFile": "Sin archivo (ejemplo)",
@@ -1301,6 +1367,33 @@
       "expired_escalation": "Un documento aceptado venció.",
       "request_escalation": "Una solicitud lleva una semana atrasada.",
       "weekly_digest": "Resumen semanal: {toReview} por revisar, {gaps} faltantes, {expiring} por vencer, {overdue} solicitudes atrasadas."
+    }
+  },
+  "newSupplier": {
+    "title": "Agregar suplidor",
+    "description": "Empieza con quién es y dónde está. Luego, en su página, subes sus documentos y se decide su aprobación.",
+    "name": "Nombre legal",
+    "type": "Tipo",
+    "typeHint": "El manufacturero hace el producto; el distribuidor te lo vende. Algunos hacen las dos cosas.",
+    "city": "Ciudad",
+    "country": "País",
+    "countryOther": "Otro país…",
+    "countryCode": "Código del país (2 letras, ISO)",
+    "fei": "FDA FEI (opcional)",
+    "feiHint": "El número de establecimiento de la FDA, de 7 a 10 dígitos. Se puede añadir después.",
+    "next": "Entrará en incorporación, pendiente de aprobación. No se le podrá comprar hasta que se apruebe.",
+    "save": "Agregar suplidor",
+    "saving": "Agregando…",
+    "cancel": "Cancelar",
+    "noAccessTitle": "Tu rol no puede agregar suplidores",
+    "noAccessBody": "Pídele a alguien de calidad o compras que lo agregue.",
+    "errors": {
+      "required": "Este campo es obligatorio.",
+      "too_short": "Escribe al menos 2 letras.",
+      "too_long": "Es demasiado largo.",
+      "invalid": "Revisa este valor.",
+      "duplicate": "Ya hay un suplidor con este nombre.",
+      "denied": "Tu rol no puede agregar suplidores."
     }
   }
 }

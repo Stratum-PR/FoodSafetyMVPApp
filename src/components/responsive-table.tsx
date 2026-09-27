@@ -15,6 +15,11 @@ export type Column<Row> = {
   sort?: { href: string; dir: "asc" | "desc" | null };
 };
 
+/** An invisible link over the whole row. Hidden from keyboards and screen readers, which use the real link. */
+function RowCover({ href }: { href: string }) {
+  return <Link href={href} aria-hidden tabIndex={-1} className="absolute inset-0" />;
+}
+
 const ARIA_SORT = { asc: "ascending", desc: "descending" } as const;
 
 function Header<Row>({ column }: { column: Column<Row> }) {
@@ -43,18 +48,24 @@ export function ResponsiveTable<Row>({
   rows,
   rowKey,
   caption,
+  rowHref,
 }: {
   columns: Column<Row>[];
   rows: Row[];
   rowKey: (row: Row) => string;
   caption?: string;
+  /**
+   * Makes the whole row (or card) open this page. The primary cell should still hold a real
+   * link to it: that one is for keyboards and screen readers; the row cover is for the mouse.
+   */
+  rowHref?: (row: Row) => string;
 }) {
   const primary = columns.find((c) => c.primary) ?? columns[0];
   const rest = columns.filter((c) => c !== primary);
 
   return (
     <>
-      <div className="hidden rounded-xl border bg-card md:block">
+      <div className="hidden min-w-0 rounded-xl border bg-card md:block">
         <Table>
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <TableHeader>
@@ -72,9 +83,13 @@ export function ResponsiveTable<Row>({
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={rowKey(row)}>
-                {columns.map((c) => (
-                  <TableCell key={c.key} className={c.className}>
+              <TableRow key={rowKey(row)} className={rowHref ? "relative cursor-pointer hover:bg-muted/50" : undefined}>
+                {columns.map((c, i) => (
+                  <TableCell
+                    key={c.key}
+                    className={`${c.className ?? ""} [&_a:not([aria-hidden])]:relative [&_a:not([aria-hidden])]:z-10`}
+                  >
+                    {rowHref && i === 0 ? <RowCover href={rowHref(row)} /> : null}
                     {c.cell(row)}
                   </TableCell>
                 ))}
@@ -86,7 +101,15 @@ export function ResponsiveTable<Row>({
 
       <ul className="grid gap-3 md:hidden" aria-label={caption}>
         {rows.map((row) => (
-          <li key={rowKey(row)} className="rounded-xl border bg-card p-4">
+          <li
+            key={rowKey(row)}
+            className={
+              rowHref
+                ? "relative cursor-pointer rounded-xl border bg-card p-4 hover:border-primary [&_a:not([aria-hidden])]:relative [&_a:not([aria-hidden])]:z-10"
+                : "rounded-xl border bg-card p-4"
+            }
+          >
+            {rowHref ? <RowCover href={rowHref(row)} /> : null}
             <div className="font-semibold">{primary.cell(row)}</div>
             <dl className="mt-2 grid gap-1.5 text-sm">
               {rest.map((c) => (

@@ -150,7 +150,10 @@
       "requirements": "Requirements",
       "fsma204": "FSMA 204",
       "issues": "Nonconformities",
-      "nextAction": "Next step"
+      "nextAction": "Next step",
+      "type": "Type",
+      "sources": "Active materials",
+      "compliance": "Compliance"
     },
     "foreign": "Foreign · FSVP",
     "inactive": "Inactive",
@@ -179,7 +182,23 @@
     "pagination": "List pages",
     "previous": "Previous",
     "next": "Next",
-    "pageOf": "Page {page} of {pages}"
+    "pageOf": "Page {page} of {pages}",
+    "stage": "Status",
+    "allStages": "All",
+    "activeStage": "Active (approved or conditional)",
+    "add": "Add supplier",
+    "statsLabel": "Supplier summary",
+    "stats": {
+      "all": "Suppliers",
+      "manufacturers": "Manufacturers",
+      "distributors": "Distributors",
+      "attention": "With pending documents",
+      "attentionHint": "Missing, expired, rejected or awaiting review",
+      "active": "{count} active"
+    },
+    "filters": "Filters",
+    "removeFilter": "Remove filter: {name}",
+    "page": "Page {page} of {pages}"
   },
   "partyType": {
     "manufacturer": "Manufacturer",
@@ -309,7 +328,44 @@
     "viewPending": "See suppliers with pending items",
     "more": "and {count} more",
     "inDays": "{days, plural, =0 {expires today} one {in # day} other {in # days}}",
-    "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+    "daysAgo": "{days, plural, one {# day ago} other {# days ago}}",
+    "operations": "Needs action",
+    "operationsHint": "What needs action today or in the coming weeks.",
+    "indicators": "Indicators",
+    "indicatorsHint": "How the supplier program is doing overall.",
+    "activeHint": "Approved or conditional",
+    "oldestWaiting": "{days, plural, =0 {oldest arrived today} one {oldest waiting # day} other {oldest waiting # days}}",
+    "queueEmpty": "Nothing to review",
+    "conditionsDue": "Conditional approvals due",
+    "conditionsDueHint": "{overdue, plural, =0 {due within 30 days} one {# review overdue} other {# reviews overdue}}",
+    "gaps": "Expired or missing",
+    "gapsHint": "{expired} expired · {missing} without current evidence",
+    "outlook": "Next 90 days",
+    "outlookLabel": "Documents expiring in the next 90 days",
+    "bucket30": "0–30 days",
+    "bucket60": "31–60 days",
+    "bucket90": "61–90 days",
+    "bucketExpired": "Expired",
+    "fda": "FDA registration renewal",
+    "fdaOpen": "The renewal period is open until {closes}.",
+    "fdaUpcoming": "The renewal period opens {opens} and closes {closes}.",
+    "fdaDue": "{count, plural, =0 {Every manufacturer shows a renewed registration.} one {# manufacturer must show a renewed registration:} other {# manufacturers must show a renewed registration:}}",
+    "fsvp": "FSVP: hazard analysis missing",
+    "fsvpHint": "Foreign manufacturers without a valid hazard analysis.",
+    "fsvpEmpty": "Every foreign manufacturer has one.",
+    "suspended": "Suspended with active materials",
+    "suspendedHint": "Still a source for an active material, so deliveries could still be received.",
+    "suspendedEmpty": "No suspended supplier has active materials.",
+    "materialCount": "{count, plural, one {# material} other {# materials}}",
+    "highRisk": "High-risk materials with gaps",
+    "highRiskHint": "Expired or missing documents for the material or its suppliers.",
+    "highRiskEmpty": "High-risk materials are up to date.",
+    "gapCount": "{count, plural, one {# gap} other {# gaps}}",
+    "nonconformities": "Nonconformities (12 months)",
+    "nonconformitiesHint": "At 3 or more in 12 months, the procedure calls for a supplier review.",
+    "nonconformitiesEmpty": "No supplier has reached 3 nonconformities.",
+    "ncCount": "{count} in 12 months",
+    "bySeverity": "By severity"
   },
   "supplier": {
     "back": "Suppliers",
@@ -586,7 +642,10 @@
       "document": "{type}: {state}",
       "by": "By {name}",
       "auditNote": "With sample data this history lives in memory. The chained audit log (each entry holding the previous one's hash) comes with the database."
-    }
+    },
+    "created": "Supplier added. It's in onboarding, pending approval: upload its documents so someone with approval rights can evaluate it.",
+    "complianceNone": "No requirements yet: they come from the materials bought from it.",
+    "complianceExplain": "Requirements up to date (current or expiring) out of all that apply for its role, origin and active materials. Details below."
   },
   "lifecycle": {
     "onboarding": "Onboarding",
@@ -600,7 +659,9 @@
     "tabs": {
       "revisar": "To review",
       "aceptados": "Accepted",
-      "rechazados": "Rejected"
+      "rechazados": "Rejected",
+      "reemplazados": "Superseded",
+      "todos": "All"
     },
     "search": "Search",
     "searchPlaceholder": "Supplier, facility, material, type, lot or file",
@@ -641,10 +702,10 @@
       "todas": "All"
     },
     "expiry": {
-      "vencidos": "Already expired",
       "30": "Within 30 days",
       "60": "Within 60 days",
       "90": "Within 90 days",
+      "vencidos": "Already expired",
       "sin-vencimiento": "Doesn't expire"
     },
     "sort": {
@@ -662,7 +723,12 @@
       "validThrough": "Valid through",
       "priority": "Priority",
       "state": "Status",
-      "action": "Action"
+      "action": "Action",
+      "type": "Document",
+      "supplier": "Supplier",
+      "about": "For",
+      "expires": "Expires",
+      "uploadedBy": "Uploaded by"
     },
     "version": "v{version}",
     "noFile": "No file (sample)",
@@ -1301,6 +1367,33 @@
       "expired_escalation": "An accepted document expired.",
       "request_escalation": "A request is a week overdue.",
       "weekly_digest": "Weekly summary: {toReview} to review, {gaps} gaps, {expiring} expiring, {overdue} overdue requests."
+    }
+  },
+  "newSupplier": {
+    "title": "Add supplier",
+    "description": "Start with who it is and where. Then, on its page, upload its documents and decide its approval.",
+    "name": "Legal name",
+    "type": "Type",
+    "typeHint": "The manufacturer makes the product; the distributor sells it to you. Some do both.",
+    "city": "City",
+    "country": "Country",
+    "countryOther": "Other country…",
+    "countryCode": "Country code (2 letters, ISO)",
+    "fei": "FDA FEI (optional)",
+    "feiHint": "The FDA establishment number, 7 to 10 digits. You can add it later.",
+    "next": "It starts in onboarding, pending approval. It can't be bought from until it's approved.",
+    "save": "Add supplier",
+    "saving": "Adding…",
+    "cancel": "Cancel",
+    "noAccessTitle": "Your role can't add suppliers",
+    "noAccessBody": "Ask someone in quality or purchasing to add it.",
+    "errors": {
+      "required": "This field is required.",
+      "too_short": "Type at least 2 letters.",
+      "too_long": "It's too long.",
+      "invalid": "Check this value.",
+      "duplicate": "There's already a supplier with this name.",
+      "denied": "Your role can't add suppliers."
     }
   }
 }
